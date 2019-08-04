@@ -11,35 +11,36 @@ matrix:
       - export PATH="/usr/local/opt/ccache/libexec:$PATH"
       before_script:
       - export CMAKE=cmake
+      script: bash $TRAVIS_BUILD_DIR/.travis/$TRAVIS_OS_NAME/build.sh
       before_deploy:
       - git config --global user.email "builds@travis-ci.com"
       - git config --global user.name "Travis CI"
-      - cd ${TRAVIS_BUILD_DIR}/build/bin
-      - zip -r Vita3K-mac-nightly.zip Vita3K.app
+      - git tag "$TRAVIS_BRANCH-v$TRAVIS_BUILD_NUMBER"
+      - zip -r "$TRAVIS_BRANCH-$TRAVIS_OS_NAME-v$TRAVIS_BUILD_NUMBER.zip" ${TRAVIS_BUILD_DIR}/build/bin/Vita3K.app
       deploy:
-        provider: script
-        overwrite: true
+        provider: releases
+        api_key: $GITHUB_OAUTH_TOKEN
+        file: "$TRAVIS_BRANCH-$TRAVIS_OS_NAME-v$TRAVIS_BUILD_NUMBER.zip"
         skip_cleanup: true
-        script: bash $TRAVIS_BUILD_DIR/.travis/macos/deploy.sh
         on:
-          repo: Vita3K/Vita3K
+          branch: travis-deploy-releases
           tags: false
-      script: bash $TRAVIS_BUILD_DIR/.travis/macos/build.sh
     - os: linux
+      sudo: required
       services: docker
-      script: bash $TRAVIS_BUILD_DIR/.travis/linux/build.sh
+      script: bash $TRAVIS_BUILD_DIR/.travis/$TRAVIS_OS_NAME/build.sh
       before_deploy:
       - git config --global user.email "builds@travis-ci.com"
       - git config --global user.name "Travis CI"
-      - cd "$HOME/linux-build/bin/"
-      - zip -r Vita3K-linux-nightly.zip .
+      - git tag "$TRAVIS_BRANCH-v$TRAVIS_BUILD_NUMBER"
+      - zip -r "$TRAVIS_BRANCH-$TRAVIS_OS_NAME-v$TRAVIS_BUILD_NUMBER.zip" ${TRAVIS_BUILD_DIR}/build/bin
       deploy:
-        provider: script
-        overwrite: true
+        provider: releases
+        api_key: $GITHUB_OAUTH_TOKEN
+        file: "$TRAVIS_BRANCH-$TRAVIS_OS_NAME-v$TRAVIS_BUILD_NUMBER.zip"
         skip_cleanup: true
-        script: bash $TRAVIS_BUILD_DIR/.travis/linux/deploy.sh
         on:
-          repo: Vita3K/Vita3K
+          branch: travis-deploy-releases
           tags: false
 
 env:
