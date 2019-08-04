@@ -22,7 +22,7 @@ matrix:
         skip_cleanup: true
         on:
           branch: master
-          repo: Vita3K/Vita3K
+          repo: scribam/Vita3K
       script: bash $TRAVIS_BUILD_DIR/.travis/macos/build.sh
     - os: linux
       sudo: required
@@ -40,7 +40,7 @@ matrix:
         skip_cleanup: true
         on:
           branch: master
-          repo: Vita3K/Vita3K
+          repo: scribam/Vita3K
 
 branches:
   except:
