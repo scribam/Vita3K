@@ -51,5 +51,5 @@ target_link_libraries(renderer PRIVATE ddspp sdl2 stb ffmpeg xxHash::xxhash conc
 
 # Marshmallow Tracy linking
 if(TRACY_ENABLE_ON_CORE_COMPONENTS)
-	target_link_libraries(renderer PRIVATE tracy)
+	target_link_libraries(renderer PRIVATE Tracy::TracyClient)
 endif()
