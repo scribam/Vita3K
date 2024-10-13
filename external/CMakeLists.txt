@@ -390,29 +390,19 @@ if(XXH_X86DISPATCH_ALLOW_AVX)
 endif()
 
 # Tracy
+option(TRACY_ENABLE "Enable profiling" OFF)
 option(TRACY_ENABLE_ON_CORE_COMPONENTS
 	"Enable and require Tracy to compile core components such as the renderer, shader recompiler and
 		HLE modules"
 	ON)
-option(TRACY_NO_FRAME_IMAGE, ON)
-add_library(tracy STATIC tracy/public/TracyClient.cpp)
-target_include_directories(tracy SYSTEM PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tracy/public>)
-target_link_libraries(tracy PUBLIC ${CMAKE_DL_LIBS})
-if(WIN32)
-	target_link_libraries(tracy PRIVATE Dbghelp)
-endif()
-
-if(UNIX)
-	target_link_libraries(tracy PUBLIC pthread)
-endif()
+option(TRACY_NO_FRAME_IMAGE  "Disable the frame image support and its thread" ON)
+option(TRACY_NO_SYSTEM_TRACING  "Disable systrace sampling" OFF)
+add_subdirectory(tracy)
 
 # Enable Tracy on-demand profiling mode to avoid unnecessary memory usage when the developer
 # isn't profiling by only enabling profiling after a connection has been established with
 # a Tracy server
-target_compile_definitions(tracy PUBLIC $<$<CONFIG:Debug,RelWithDebInfo>:TRACY_ON_DEMAND>)
-
-# Disable Tracy automated data collection in order to prevent Tracy-related code from being profiled
-target_compile_definitions(tracy PUBLIC TRACY_NO_SYSTEM_TRACING)
+target_compile_definitions(TracyClient PUBLIC $<$<CONFIG:Debug,RelWithDebInfo>:TRACY_ON_DEMAND>)
 
 # Defining TRACY_ENABLE for both compiling Tracy and compiling the project that links
 # against it is needed for Tracy to work
@@ -422,11 +412,11 @@ target_compile_definitions(tracy PUBLIC TRACY_NO_SYSTEM_TRACING)
 # A (DEFAULT). Enable Tracy on any target that links against if the build configuration
 # is either Debug and RelWithDebInfo
 #
-# Using generator expresions instead of a conditional with CMAKE_BUILD_TYPE is needed
+# Using generator expressions instead of a conditional with CMAKE_BUILD_TYPE is needed
 # in order for the condition to work properly on both single-config and multi-config
 # CMake project generators. More info here:
 # https://cmake.org/cmake/help/latest/manual/cmake-buildsystem.7.html#build-configurations
-target_compile_definitions(tracy PUBLIC $<$<CONFIG:Debug,RelWithDebInfo>:TRACY_ENABLE>)
+target_compile_definitions(TracyClient PUBLIC $<$<CONFIG:Debug,RelWithDebInfo>:TRACY_ENABLE>)
 
 #
 # ----------------------------------------------------------------------------------------

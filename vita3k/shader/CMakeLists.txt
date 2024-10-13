@@ -24,6 +24,6 @@ target_link_libraries(shader PRIVATE SPIRV spirv-cross-glsl)
 
 # Marshmallow Tracy linking
 if(TRACY_ENABLE_ON_CORE_COMPONENTS)
-	target_link_libraries(shader PRIVATE tracy)
+	target_link_libraries(shader PRIVATE Tracy::TracyClient)
 endif()
 
