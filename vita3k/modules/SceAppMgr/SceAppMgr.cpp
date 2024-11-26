@@ -27,6 +27,13 @@ TRACY_MODULE_NAME(SceAppMgr);
 
 EXPORT(SceInt32, __sceAppMgrGetAppState, SceAppMgrAppState *appState, SceUInt32 sizeofSceAppMgrAppState, SceUInt32 buildVersion) {
     TRACY_FUNC(__sceAppMgrGetAppState, appState, sizeofSceAppMgrAppState, buildVersion);
+
+    if (buildVersion > 0x3740011 || sizeofSceAppMgrAppState != sizeof(SceAppMgrAppState))
+        return RET_ERROR(SCE_APPMGR_ERROR_INVALID);
+
+    if (!appState)
+        return RET_ERROR(SCE_APPMGR_ERROR_NULL_POINTER);
+
     memset(appState, 0, sizeofSceAppMgrAppState);
 
     return STUBBED("Set to 0.");

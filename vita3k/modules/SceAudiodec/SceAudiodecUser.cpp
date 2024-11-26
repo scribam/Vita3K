@@ -30,8 +30,10 @@ TRACY_MODULE_NAME(SceAudiodecUser);
 enum {
     SCE_AUDIODEC_ERROR_API_FAIL = 0x807F0000,
     SCE_AUDIODEC_ERROR_NOT_INITIALIZED = 0x807F0005,
+    SCE_AUDIODEC_ERROR_INVALID_PTR = 0x807F0008,
     SCE_AUDIODEC_ERROR_INVALID_HANDLE = 0x807F0009,
     SCE_AUDIODEC_ERROR_NOT_HANDLE_IN_USE = 0x807F000A,
+    SCE_AUDIODEC_ERROR_INVALID_SIZE = 0x807F000D,
     SCE_AUDIODEC_MP3_ERROR_INVALID_MPEG_VERSION = 0x807F2801,
 };
 
@@ -121,12 +123,19 @@ LIBRARY_INIT(SceAudiodec) {
 
 EXPORT(int, sceAudiodecClearContext, SceAudiodecCtrl *ctrl) {
     TRACY_FUNC(sceAudiodecClearContext, ctrl)
+
+    if (!ctrl)
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_PTR);
+
+    if (ctrl->size != sizeof(SceAudiodecCtrl))
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_SIZE);
+
     const auto state = emuenv.kernel.obj_store.get<AudiodecState>();
     if (state->codecs.empty()) {
-        return SCE_AUDIODEC_ERROR_NOT_INITIALIZED;
+        return RET_ERROR(SCE_AUDIODEC_ERROR_NOT_INITIALIZED);
     }
     if (!ctrl->handle) {
-        return SCE_AUDIODEC_ERROR_INVALID_HANDLE;
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_HANDLE);
     }
 
     const DecoderPtr &decoder = lock_and_find(ctrl->handle, state->decoders, state->mutex);
@@ -134,13 +143,19 @@ EXPORT(int, sceAudiodecClearContext, SceAudiodecCtrl *ctrl) {
     if (decoder) {
         decoder->flush();
     } else {
-        return SCE_AUDIODEC_ERROR_NOT_HANDLE_IN_USE;
+        return RET_ERROR(SCE_AUDIODEC_ERROR_NOT_HANDLE_IN_USE);
     }
 
     return 0;
 }
 
-static int create_decoder(EmuEnvState &emuenv, SceAudiodecCtrl *ctrl, SceAudiodecCodec codec) {
+static int create_decoder(EmuEnvState &emuenv, const char *export_name, SceAudiodecCtrl *ctrl, SceAudiodecCodec codec) {
+    if (!ctrl)
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_PTR);
+
+    if (ctrl->size != sizeof(SceAudiodecCtrl))
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_SIZE);
+
     const auto state = emuenv.kernel.obj_store.get<AudiodecState>();
     std::lock_guard<std::mutex> lock(state->mutex);
 
@@ -197,7 +212,7 @@ static int create_decoder(EmuEnvState &emuenv, SceAudiodecCtrl *ctrl, SceAudiode
             return 0;
         default:
             LOG_ERROR("Invalid MPEG version {}.", to_debug_str(emuenv.mem, info.version));
-            return SCE_AUDIODEC_MP3_ERROR_INVALID_MPEG_VERSION;
+            return RET_ERROR(SCE_AUDIODEC_MP3_ERROR_INVALID_MPEG_VERSION);
         }
     }
     default: {
@@ -209,7 +224,7 @@ static int create_decoder(EmuEnvState &emuenv, SceAudiodecCtrl *ctrl, SceAudiode
 
 EXPORT(int, sceAudiodecCreateDecoder, SceAudiodecCtrl *ctrl, SceAudiodecCodec codec) {
     TRACY_FUNC(sceAudiodecCreateDecoder, ctrl, codec);
-    return create_decoder(emuenv, ctrl, codec);
+    return create_decoder(emuenv, export_name, ctrl, codec);
 }
 
 EXPORT(int, sceAudiodecCreateDecoderExternal, SceAudiodecCtrl *ctrl, SceAudiodecCodec codec, void *context, uint32_t size) {
@@ -217,7 +232,7 @@ EXPORT(int, sceAudiodecCreateDecoderExternal, SceAudiodecCtrl *ctrl, SceAudiodec
     // I think context is supposed to be just extra memory where I can allocate my context.
     // I'm just going to allocate like regular sceAudiodecCreateDecoder and see how it goes.
     // Almost sure zang has already tried this so :/ - desgroup
-    return create_decoder(emuenv, ctrl, codec);
+    return create_decoder(emuenv, export_name, ctrl, codec);
 }
 
 EXPORT(int, sceAudiodecCreateDecoderResident) {
@@ -226,6 +241,12 @@ EXPORT(int, sceAudiodecCreateDecoderResident) {
 }
 
 static int decode_audio_frames(EmuEnvState &emuenv, const char *export_name, SceAudiodecCtrl *ctrl, SceUInt32 nb_frames) {
+    if (!ctrl)
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_PTR);
+
+    if (ctrl->size != sizeof(SceAudiodecCtrl))
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_SIZE);
+
     const auto state = emuenv.kernel.obj_store.get<AudiodecState>();
     const DecoderPtr &decoder = lock_and_find(ctrl->handle, state->decoders, state->mutex);
 
@@ -266,13 +287,27 @@ EXPORT(int, sceAudiodecDecodeNFrames, SceAudiodecCtrl *ctrl, SceUInt32 nFrames) 
     return decode_audio_frames(emuenv, export_name, ctrl, nFrames);
 }
 
-EXPORT(int, sceAudiodecDecodeNStreams, Ptr<SceAudiodecCtrl> *pCtrls, SceUInt32 nStreams) {
-    TRACY_FUNC(sceAudiodecDecodeNStreams, pCtrls, nStreams);
+EXPORT(int, sceAudiodecDecodeNStreams, SceAudiodecCtrl *ctrl, SceUInt32 nStreams) {
+    TRACY_FUNC(sceAudiodecDecodeNStreams, ctrl, nStreams);
+
+    if (!ctrl)
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_PTR);
+
+    if (ctrl->size != sizeof(SceAudiodecCtrl))
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_SIZE);
+
     return UNIMPLEMENTED();
 }
 
 EXPORT(int, sceAudiodecDeleteDecoder, SceAudiodecCtrl *ctrl) {
     TRACY_FUNC(sceAudiodecDeleteDecoder, ctrl);
+
+    if (!ctrl)
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_PTR);
+
+    if (ctrl->size != sizeof(SceAudiodecCtrl))
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_SIZE);
+
     const auto state = emuenv.kernel.obj_store.get<AudiodecState>();
     std::lock_guard<std::mutex> lock(state->mutex);
     state->decoders.erase(ctrl->handle);
@@ -298,6 +333,13 @@ EXPORT(int, sceAudiodecDeleteDecoderResident) {
 
 EXPORT(int, sceAudiodecGetContextSize, SceAudiodecCtrl *pCtrl, SceAudiodecCodec codecType) {
     TRACY_FUNC(sceAudiodecGetContextSize, pCtrl, codecType);
+
+    if (!pCtrl)
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_PTR);
+
+    if (pCtrl->size != sizeof(SceAudiodecCtrl))
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_SIZE);
+
     STUBBED("fake size");
     return 53;
 }
@@ -309,6 +351,10 @@ EXPORT(int, sceAudiodecGetInternalError) {
 
 EXPORT(SceInt32, sceAudiodecInitLibrary, SceAudiodecCodec codecType, SceAudiodecInitParam *pInitParam) {
     TRACY_FUNC(sceAudiodecInitLibrary, codecType, pInitParam);
+
+    if (!pInitParam)
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_PTR);
+
     const auto state = emuenv.kernel.obj_store.get<AudiodecState>();
     std::lock_guard<std::mutex> lock(state->mutex);
 
@@ -318,6 +364,13 @@ EXPORT(SceInt32, sceAudiodecInitLibrary, SceAudiodecCodec codecType, SceAudiodec
 
 EXPORT(int, sceAudiodecPartlyDecode, SceAudiodecCtrl *ctrl, SceUInt32 samples_offset, SceUInt32 samples_to_decode) {
     TRACY_FUNC(sceAudiodecPartlyDecode, ctrl, samples_offset, samples_to_decode);
+
+    if (!ctrl)
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_PTR);
+
+    if (ctrl->size != sizeof(SceAudiodecCtrl))
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_SIZE);
+
     // this function is only called by libatrac
     const auto state = emuenv.kernel.obj_store.get<AudiodecState>();
     if (!state->codecs[SCE_AUDIODEC_TYPE_AT9].contains(ctrl->handle)) {

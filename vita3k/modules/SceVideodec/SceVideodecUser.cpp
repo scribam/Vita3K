@@ -34,10 +34,45 @@ struct VideodecState {
 
 enum {
     SCE_AVCDEC_ERROR_INVALID_PARAM = 0x80620002,
+    SCE_AVCDEC_ERROR_INVALID_POINTER = 0x80620009,
+};
+
+enum {
+    SCE_VIDEODEC_ERROR_INVALID_TYPE = 0x80620801,
+    SCE_VIDEODEC_ERROR_INVALID_PARAM = 0x80620802,
+    SCE_VIDEODEC_ERROR_OUT_OF_MEMORY = 0x80620803,
+    SCE_VIDEODEC_ERROR_INVALID_STATE = 0x80620804,
+    SCE_VIDEODEC_ERROR_UNSUPPORT_IMAGE_SIZE = 0x80620805,
+    SCE_VIDEODEC_ERROR_INVALID_COLOR_FORMAT = 0x80620806,
+    SCE_VIDEODEC_ERROR_NOT_PHY_CONTINUOUS_MEMORY = 0x80620807,
+    SCE_VIDEODEC_ERROR_ALREADY_USED = 0x80620808,
+    SCE_VIDEODEC_ERROR_INVALID_POINTER = 0x80620809,
+    SCE_VIDEODEC_ERROR_ES_BUFFER_FULL = 0x8062080A,
+    SCE_VIDEODEC_ERROR_INITIALIZE = 0x8062080B,
+    SCE_VIDEODEC_ERROR_NOT_INITIALIZE = 0x8062080C,
+    SCE_VIDEODEC_ERROR_INVALID_STREAM = 0x8062080D,
+    SCE_VIDEODEC_ERROR_INVALID_ARGUMENT_SIZE = 0x8062080E,
 };
 
 enum SceVideodecType {
     SCE_VIDEODEC_TYPE_HW_AVCDEC = 0x1001
+};
+
+struct SceVideodecQueryInitInfoHwAvcdec {
+    uint32_t size;
+    uint32_t horizontal;
+    uint32_t vertical;
+    uint32_t numOfRefFrames;
+    uint32_t numOfStreams;
+};
+
+union SceVideodecQueryInitInfo {
+    uint8_t reserved[32];
+    SceVideodecQueryInitInfoHwAvcdec hwAvc;
+};
+
+struct SceVideodecMemInfo {
+    uint32_t memSize;
 };
 
 struct SceVideodecTimeStamp {
@@ -151,7 +186,16 @@ struct SceAvcdecArrayPicture {
 
 EXPORT(int, sceAvcdecCreateDecoder, uint32_t codec_type, SceAvcdecCtrl *decoder, const SceAvcdecQueryDecoderInfo *query) {
     TRACY_FUNC(sceAvcdecCreateDecoder, codec_type, decoder, query);
-    assert(codec_type == SCE_VIDEODEC_TYPE_HW_AVCDEC);
+
+    if (codec_type != SCE_VIDEODEC_TYPE_HW_AVCDEC)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_PARAM);
+
+    if (!decoder || !query)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_POINTER);
+
+    if (query->horizontal > 1920 || query->vertical > 1088 || query->horizontal * query->vertical > 1280 * 720 || query->numOfRefFrames > 16)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_PARAM);
+
     const auto state = emuenv.kernel.obj_store.get<VideodecState>();
     std::lock_guard<std::mutex> lock(state->mutex);
 
@@ -185,6 +229,13 @@ EXPORT(int, sceAvcdecCscInternal) {
 
 EXPORT(int, sceAvcdecDecode, SceAvcdecCtrl *decoder, const SceAvcdecAu *au, SceAvcdecArrayPicture *picture) {
     TRACY_FUNC(sceAvcdecDecode, decoder, au, picture);
+
+    if (!decoder)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_POINTER);
+
+    if (decoder->handle == 0)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_PARAM);
+
     const auto state = emuenv.kernel.obj_store.get<VideodecState>();
     const H264DecoderPtr &decoder_info = lock_and_find(decoder->handle, state->decoders, state->mutex);
     if (!decoder_info)
@@ -244,6 +295,13 @@ EXPORT(int, sceAvcdecDecodeAuNongameapp) {
 
 EXPORT(int, sceAvcdecDecodeAvailableSize, SceAvcdecCtrl *decoder) {
     TRACY_FUNC(sceAvcdecDecodeAvailableSize, decoder);
+
+    if (!decoder)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_POINTER);
+
+    if (decoder->handle == 0)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_PARAM);
+
     const auto state = emuenv.kernel.obj_store.get<VideodecState>();
     const H264DecoderPtr &decoder_info = lock_and_find(decoder->handle, state->decoders, state->mutex);
     if (!decoder_info)
@@ -255,6 +313,13 @@ EXPORT(int, sceAvcdecDecodeAvailableSize, SceAvcdecCtrl *decoder) {
 
 EXPORT(int, sceAvcdecDecodeFlush, SceAvcdecCtrl *decoder) {
     TRACY_FUNC(sceAvcdecDecodeFlush, decoder);
+
+    if (!decoder)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_POINTER);
+
+    if (decoder->handle == 0)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_PARAM);
+
     const auto state = emuenv.kernel.obj_store.get<VideodecState>();
     const H264DecoderPtr &decoder_info = lock_and_find(decoder->handle, state->decoders, state->mutex);
     if (!decoder_info)
@@ -303,6 +368,13 @@ EXPORT(int, sceAvcdecDecodeSetUserDataSei1FieldMemSizeNongameapp) {
 
 EXPORT(int, sceAvcdecDecodeStop, SceAvcdecCtrl *decoder, SceAvcdecArrayPicture *picture) {
     TRACY_FUNC(sceAvcdecDecodeStop, decoder, picture);
+
+    if (!decoder)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_POINTER);
+
+    if (decoder->handle == 0)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_PARAM);
+
     const auto state = emuenv.kernel.obj_store.get<VideodecState>();
     const H264DecoderPtr &decoder_info = lock_and_find(decoder->handle, state->decoders, state->mutex);
     if (!decoder_info)
@@ -336,6 +408,13 @@ EXPORT(int, sceAvcdecDecodeWithWorkPicture) {
 
 EXPORT(int, sceAvcdecDeleteDecoder, SceAvcdecCtrl *decoder) {
     TRACY_FUNC(sceAvcdecDeleteDecoder, decoder);
+
+    if (!decoder)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_POINTER);
+
+    if (decoder->handle == 0)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_PARAM);
+
     const auto state = emuenv.kernel.obj_store.get<VideodecState>();
     std::lock_guard<std::mutex> lock(state->mutex);
     state->decoders.erase(decoder->handle);
@@ -355,9 +434,18 @@ EXPORT(int, sceAvcdecGetSeiUserDataNongameapp) {
 
 EXPORT(int, sceAvcdecQueryDecoderMemSize, uint32_t codec_type, const SceAvcdecQueryDecoderInfo *query_info, SceAvcdecDecoderInfo *decoder_info) {
     TRACY_FUNC(sceAvcdecQueryDecoderMemSize, codec_type, query_info, decoder_info);
-    assert(codec_type == SCE_VIDEODEC_TYPE_HW_AVCDEC);
+
+    if (codec_type != SCE_VIDEODEC_TYPE_HW_AVCDEC)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_PARAM);
+
+    if (!query_info || !decoder_info)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_POINTER);
+
+    if (query_info->horizontal > 1920 || query_info->vertical > 1088 || query_info->horizontal * query_info->vertical > 1280 * 720 || query_info->numOfRefFrames > 16)
+        return RET_ERROR(SCE_AVCDEC_ERROR_INVALID_PARAM);
 
     decoder_info->frameMemSize = H264DecoderState::buffer_size({ { query_info->horizontal, query_info->vertical } }) * query_info->numOfRefFrames;
+    decoder_info->frameMemSize = decoder_info->frameMemSize + 0x3ffffU & 0xfffc0000;
 
     return 0;
 }
@@ -527,10 +615,21 @@ EXPORT(int, sceVideodecQueryInstanceNongameapp) {
     return UNIMPLEMENTED();
 }
 
-EXPORT(int, sceVideodecQueryMemSize) {
-    TRACY_FUNC(sceVideodecQueryMemSize);
-    STUBBED("fake size");
-    return 53;
+EXPORT(int, sceVideodecQueryMemSize, SceUInt32 codecType, const SceVideodecQueryInitInfo *pInitInfo, SceVideodecMemInfo *pMemInfo) {
+    TRACY_FUNC(sceVideodecQueryMemSize, codecType, pInitInfo, pMemInfo);
+
+    if (codecType != SCE_VIDEODEC_TYPE_HW_AVCDEC)
+        return RET_ERROR(SCE_VIDEODEC_ERROR_INVALID_PARAM);
+
+    if (!pInitInfo || !pMemInfo)
+        return RET_ERROR(SCE_VIDEODEC_ERROR_INVALID_POINTER);
+
+    if (pInitInfo->hwAvc.size != sizeof(SceVideodecQueryInitInfoHwAvcdec))
+        return RET_ERROR(SCE_VIDEODEC_ERROR_INVALID_ARGUMENT_SIZE);
+
+    pMemInfo->memSize = 53;
+
+    return STUBBED("fake size");
 }
 
 EXPORT(int, sceVideodecQueryMemSizeInternal) {

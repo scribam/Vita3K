@@ -102,7 +102,12 @@ EXPORT(int, sceCtrlGetSamplingModeExt, SceCtrlPadInputMode *mode) {
 
 EXPORT(int, sceCtrlGetWirelessControllerInfo, SceCtrlWirelessControllerInfo *pInfo) {
     TRACY_FUNC(sceCtrlGetWirelessControllerInfo, pInfo);
-    memset(pInfo->connected, SCE_CTRL_WIRELESS_INFO_NOT_CONNECTED, sizeof(pInfo->connected));
+
+    if (!pInfo)
+        return RET_ERROR(SCE_CTRL_ERROR_INVALID_ARG);
+
+    memset(pInfo, 0, sizeof(SceCtrlWirelessControllerInfo));
+
     if (emuenv.cfg.current_config.pstv_mode) {
         CtrlState &state = emuenv.ctrl;
         for (auto i = 0; i < state.controllers_num; i++)

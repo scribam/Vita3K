@@ -306,6 +306,11 @@ static void retrieve_ctrl_data(EmuEnvState &emuenv, int port, bool is_v2, bool n
 }
 
 int ctrl_get(const SceUID thread_id, EmuEnvState &emuenv, int port, SceCtrlData2 *pData, SceUInt32 count, bool negative, bool is_peek, bool is_v2, bool from_ext) {
+    if (!pData || count > 64) {
+        const char *export_name = "sceCtrl*Buffer*";
+        return RET_ERROR(SCE_CTRL_ERROR_INVALID_ARG);
+    }
+
     if (port > 1 && !emuenv.cfg.current_config.pstv_mode) {
         const char *export_name = "sceCtrl*Buffer*";
         return RET_ERROR(SCE_CTRL_ERROR_NO_DEVICE);
