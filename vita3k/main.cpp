@@ -185,10 +185,16 @@ int main(int argc, char *argv[]) {
         SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_SWITCH, "1");
         SDL_SetHint(SDL_HINT_JOYSTICK_HIDAPI_JOY_CONS, "1");
 
-        if (SDL_Init(SDL_INIT_GAMECONTROLLER | SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER | SDL_INIT_AUDIO) < 0) {
             app::error_dialog("SDL initialisation failed.");
             return SDLInitFailed;
         }
+
+        // From 2.0.18: Enable native IME.
+#ifdef SDL_HINT_IME_SHOW_UI
+        SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
+#endif
+
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     }
 
@@ -219,7 +225,7 @@ int main(int argc, char *argv[]) {
                 if (handle_events(emuenv, gui)) {
                     gui::draw_begin(gui, emuenv);
                     gui::draw_initial_setup(gui, emuenv);
-                    gui::draw_end(gui);
+                    gui::draw_end(gui, emuenv);
                     emuenv.renderer->swap_window(emuenv.window.get());
                 } else
                     return QuitRequested;
@@ -277,24 +283,8 @@ int main(int argc, char *argv[]) {
         auto discord_rich_presence_old = emuenv.cfg.discord_rich_presence;
 #endif
 
-        std::chrono::system_clock::time_point present = std::chrono::system_clock::now();
-        std::chrono::system_clock::time_point later = std::chrono::system_clock::now();
-        const double frame_time = 1000.0 / 60.0;
         // Application not provided via argument, show app selector
         while (run_type == app::AppRunType::Unknown) {
-            // get the current time & get the time we worked for
-            present = std::chrono::system_clock::now();
-            std::chrono::duration<double, std::milli> work_time = present - later;
-            // check if we are running faster than ~60fps (16.67ms)
-            if (work_time.count() < frame_time) {
-                // sleep for delta time.
-                std::chrono::duration<double, std::milli> delta_ms(frame_time - work_time.count());
-                auto delta_ms_duration = std::chrono::duration_cast<std::chrono::milliseconds>(delta_ms);
-                std::this_thread::sleep_for(std::chrono::milliseconds(delta_ms_duration.count()));
-            }
-            // save the later time
-            later = std::chrono::system_clock::now();
-
             if (handle_events(emuenv, gui)) {
                 ZoneScopedN("UI rendering"); // Tracy - Track UI rendering loop scope
                 gui::draw_begin(gui, emuenv);
@@ -305,10 +295,12 @@ int main(int argc, char *argv[]) {
                 gui::draw_vita_area(gui, emuenv);
                 gui::draw_ui(gui, emuenv);
 
-                gui::draw_end(gui);
+                gui::draw_end(gui, emuenv);
                 emuenv.renderer->swap_window(emuenv.window.get());
                 FrameMark; // Tracy - Frame end mark for UI rendering loop
             } else {
+                emuenv.renderer->preclose_action();
+                app::destroy(emuenv, gui);
                 return QuitRequested;
             }
 
@@ -350,8 +342,6 @@ int main(int argc, char *argv[]) {
             return main_thread->status == ThreadStatus::dormant;
         });
         return Success;
-    } else {
-        gui.imgui_state->do_clear_screen = false;
     }
 
     gui::init_app_background(gui, emuenv, emuenv.io.app_path);
@@ -394,7 +384,7 @@ int main(int argc, char *argv[]) {
             emuenv.renderer->precompile_shader(hash);
             gui::draw_pre_compiling_shaders_progress(gui, emuenv, uint32_t(emuenv.renderer->shaders_cache_hashs.size()));
 
-            gui::draw_end(gui);
+            gui::draw_end(gui, emuenv);
             emuenv.renderer->swap_window(emuenv.window.get());
         }
     }
@@ -418,7 +408,7 @@ int main(int argc, char *argv[]) {
         gui::draw_common_dialog(gui, emuenv);
         draw_app_background(gui, emuenv);
 
-        gui::draw_end(gui);
+        gui::draw_end(gui, emuenv);
         emuenv.renderer->swap_window(emuenv.window.get());
         FrameMark; // Tracy - Frame end mark for game loading loop
     }
@@ -455,7 +445,7 @@ int main(int argc, char *argv[]) {
             gui::draw_ui(gui, emuenv);
         }
 
-        gui::draw_end(gui);
+        gui::draw_end(gui, emuenv);
         emuenv.renderer->swap_window(emuenv.window.get());
         FrameMark; // Tracy - Frame end mark for game rendering loop
     }
@@ -465,7 +455,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     emuenv.renderer->preclose_action();
-    app::destroy(emuenv, gui.imgui_state.get());
+    app::destroy(emuenv, gui);
 
     if (emuenv.load_exec)
         run_execv(argv, emuenv);
