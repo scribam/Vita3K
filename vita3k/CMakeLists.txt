@@ -281,4 +281,4 @@ elseif(WIN32)
 endif()
 
 # Enable Tracy profiling on the main compilation target
-target_link_libraries(vita3k PRIVATE tracy)
+target_link_libraries(vita3k PRIVATE Tracy::TracyClient)
