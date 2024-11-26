@@ -27,6 +27,7 @@
 #include <util/string_utils.h>
 
 #include <self.h>
+#include <utils/sha256.h>
 
 #include <fstream>
 
@@ -861,7 +862,11 @@ void self2elf(const fs::path &infile, const fs::path &outfile, KeyStore &SCE_KEY
     EVP_CIPHER_free(cipher);
 }
 
-// Credits to the vitasdk team/contributors for vita-make-fself https://github.com/vitasdk/vita-toolchain/blob/master/src/vita-make-fself.c
+// Credits to the vitasdk team/contributors for vita-make-fself https://github.com/vitasdk/vita-toolchain/blob/master/src/vita-make-fself/vita-make-fself.c
+
+const uint8_t digest_constant[0x14] = {
+    0x62, 0x7C, 0xB1, 0x80, 0x8A, 0xB9, 0x38, 0xE3, 0x2C, 0x8C, 0x09, 0x17, 0x08, 0x72, 0x6A, 0x57, 0x9E, 0x25, 0x86, 0xE4
+};
 
 void make_fself(const fs::path &input_file, const fs::path &output_file, uint64_t authid) {
     std::ifstream filein(input_file.native().c_str(), std::ios::binary);
@@ -873,6 +878,10 @@ void make_fself(const fs::path &input_file, const fs::path &output_file, uint64_
     filein.read(&input[0], file_size);
     filein.close();
 
+    uint8_t elf_digest[0x20];
+
+    sha256_vector(1, (uint8_t *[]){&input[0]}, (size_t[]){file_size}, elf_digest);
+
     ElfHeader ehdr = ElfHeader(&input[0]);
 
     SCE_header hdr{};
@@ -880,9 +889,10 @@ void make_fself(const fs::path &input_file, const fs::path &output_file, uint64_
     hdr.version = 3;
     hdr.sdk_type = 0xC0;
     hdr.header_type = 1;
-    hdr.metadata_offset = 0x600;
+    hdr.metadata_offset = 0x600; // ext_header size
     hdr.header_len = HEADER_LENGTH;
     hdr.elf_filesize = file_size;
+    hdr.self_filesize = 0;
     hdr.self_offset = 4;
     hdr.appinfo_offset = 0x80;
     hdr.elf_offset = sizeof(SCE_header) + sizeof(SCE_appinfo);
@@ -891,15 +901,14 @@ void make_fself(const fs::path &input_file, const fs::path &output_file, uint64_
     hdr.section_info_offset = hdr.phdr_offset + ElfPhdr::Size * ehdr.e_phnum;
     hdr.sceversion_offset = hdr.section_info_offset + sizeof(segment_info) * ehdr.e_phnum;
     hdr.controlinfo_offset = hdr.sceversion_offset + sizeof(SCE_version);
-    hdr.controlinfo_size = sizeof(SCE_controlinfo_5) + sizeof(SCE_controlinfo_6) + sizeof(SCE_controlinfo_7);
-    hdr.self_filesize = 0;
+    hdr.controlinfo_size = sizeof(SCE_controlinfo_4) + sizeof(SCE_controlinfo_5) + sizeof(SCE_controlinfo_6) + sizeof(SCE_controlinfo_7);
 
     uint32_t offset_to_real_elf = HEADER_LEN;
 
     SCE_appinfo appinfo{};
     appinfo.authid = authid;
     appinfo.vendor_id = 0;
-    appinfo.self_type = 8;
+    appinfo.self_type = 8; // app/user/kernel/sm
     appinfo.version = 0x1000000000000;
     appinfo.padding = 0;
 
@@ -909,15 +918,25 @@ void make_fself(const fs::path &input_file, const fs::path &output_file, uint64_
     ver.unk3 = 16;
     ver.unk4 = 0;
 
+    SCE_controlinfo_4 control_4{};
+    control_4.common.type = 4;
+    control_4.common.size = sizeof(control_4);
+    control_4.common.unk = 1;
+    memcpy(control_4.constant, digest_constant, sizeof(control_4.constant));
+    memcpy(control_4.elf_digest, elf_digest, sizeof(control_4.elf_digest));
+    control_4.min_required_fw = 0LL; // on fself
+
     SCE_controlinfo_5 control_5{};
     control_5.common.type = 5;
     control_5.common.size = sizeof(control_5);
     control_5.common.unk = 1;
+
     SCE_controlinfo_6 control_6{};
     control_6.common.type = 6;
     control_6.common.size = sizeof(control_6);
     control_6.common.unk = 1;
     control_6.is_used = 1;
+
     SCE_controlinfo_7 control_7{};
     control_7.common.type = 7;
     control_7.common.size = sizeof(control_7);
@@ -964,6 +983,7 @@ void make_fself(const fs::path &input_file, const fs::path &output_file, uint64_
     fileout.write((char *)&ver, sizeof(ver));
 
     fileout.seekp(hdr.controlinfo_offset, std::ios_base::beg);
+    fileout.write((char *)&control_4, sizeof(control_4));
     fileout.write((char *)&control_5, sizeof(control_5));
     fileout.write((char *)&control_6, sizeof(control_6));
     fileout.write((char *)&control_7, sizeof(control_7));
