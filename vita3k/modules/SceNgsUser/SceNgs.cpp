@@ -378,8 +378,12 @@ EXPORT(SceUInt32, sceNgsSystemInit, Ptr<void> memspace, const uint32_t memspace_
     return SCE_NGS_OK;
 }
 
-EXPORT(int, sceNgsSystemLock) {
-    TRACY_FUNC(sceNgsSystemLock);
+EXPORT(int, sceNgsSystemLock, ngs::System *system) {
+    TRACY_FUNC(sceNgsSystemLock, system);
+
+    if (!system)
+        return RET_ERROR(SCE_NGS_ERROR_INVALID_HANDLE);
+
     return UNIMPLEMENTED();
 }
 
@@ -389,7 +393,7 @@ EXPORT(SceInt32, sceNgsSystemRelease, ngs::System *system) {
         return SCE_NGS_OK;
 
     if (!system)
-        return RET_ERROR(SCE_NGS_ERROR_INVALID_ARG);
+        return RET_ERROR(SCE_NGS_ERROR_INVALID_HANDLE);
 
     {
         std::unique_lock<std::recursive_mutex> lock(system->voice_scheduler.mutex);
@@ -405,18 +409,30 @@ EXPORT(SceInt32, sceNgsSystemRelease, ngs::System *system) {
     return SCE_NGS_OK;
 }
 
-EXPORT(int, sceNgsSystemSetFlags) {
-    TRACY_FUNC(sceNgsSystemSetFlags);
+EXPORT(int, sceNgsSystemSetFlags, ngs::System *system) {
+    TRACY_FUNC(sceNgsSystemSetFlags, system);
+
+    if (!system)
+        return RET_ERROR(SCE_NGS_ERROR_INVALID_HANDLE);
+
     return UNIMPLEMENTED();
 }
 
-EXPORT(int, sceNgsSystemSetParamErrorCallback) {
-    TRACY_FUNC(sceNgsSystemSetParamErrorCallback);
+EXPORT(int, sceNgsSystemSetParamErrorCallback, ngs::System *system) {
+    TRACY_FUNC(sceNgsSystemSetParamErrorCallback, system);
+
+    if (!system)
+        return RET_ERROR(SCE_NGS_ERROR_INVALID_HANDLE);
+
     return UNIMPLEMENTED();
 }
 
-EXPORT(int, sceNgsSystemUnlock) {
-    TRACY_FUNC(sceNgsSystemUnlock);
+EXPORT(int, sceNgsSystemUnlock, ngs::System *system) {
+    TRACY_FUNC(sceNgsSystemUnlock, system);
+
+    if (!system)
+        return RET_ERROR(SCE_NGS_ERROR_INVALID_HANDLE);
+
     return UNIMPLEMENTED();
 }
 
@@ -425,6 +441,9 @@ EXPORT(SceUInt32, sceNgsSystemUpdate, ngs::System *system) {
     if (!emuenv.cfg.current_config.ngs_enable) {
         return 0;
     }
+
+    if (!system)
+        return RET_ERROR(SCE_NGS_ERROR_INVALID_HANDLE);
 
     system->voice_scheduler.update(emuenv.kernel, emuenv.mem, thread_id);
 
