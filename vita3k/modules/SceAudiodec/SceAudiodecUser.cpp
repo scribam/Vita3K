@@ -29,6 +29,7 @@ TRACY_MODULE_NAME(SceAudiodecUser);
 
 enum {
     SCE_AUDIODEC_ERROR_API_FAIL = 0x807F0000,
+    SCE_AUDIODEC_ERROR_INVALID_TYPE = 0x807F0001,
     SCE_AUDIODEC_ERROR_NOT_INITIALIZED = 0x807F0005,
     SCE_AUDIODEC_ERROR_INVALID_PTR = 0x807F0008,
     SCE_AUDIODEC_ERROR_INVALID_HANDLE = 0x807F0009,
@@ -105,6 +106,8 @@ struct SceAudiodecCtrl {
     uint32_t word_length;
     Ptr<SceAudiodecInfo> info;
 };
+
+static_assert(sizeof(SceAudiodecCtrl) == 0x28);
 
 constexpr uint32_t SCE_AUDIODEC_AT9_MAX_ES_SIZE = 1024;
 constexpr uint32_t SCE_AUDIODEC_MP3_MAX_ES_SIZE = 1441;
@@ -340,8 +343,35 @@ EXPORT(int, sceAudiodecGetContextSize, SceAudiodecCtrl *pCtrl, SceAudiodecCodec 
     if (pCtrl->size != sizeof(SceAudiodecCtrl))
         return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_SIZE);
 
+    uint32_t index;
+    uint32_t channels;
+
+    switch (codecType) {
+    case SCE_AUDIODEC_TYPE_AT9:
+        index = 0;
+        channels = pCtrl->info.get(emuenv.mem)->at9.channels;
+        break;
+    case SCE_AUDIODEC_TYPE_MP3:
+        index = 1;
+        channels = pCtrl->info.get(emuenv.mem)->mp3.channels;
+        break;
+    case SCE_AUDIODEC_TYPE_AAC:
+        index = 2;
+        channels = pCtrl->info.get(emuenv.mem)->aac.channels;
+        break;
+    case SCE_AUDIODEC_TYPE_CELP:
+        index = 4;
+        channels = 1;
+        break;
+    default:
+        // Found these during reverse engineering, log them in case we need an implementation
+        LOG_WARN_IF(codecType == 0x1007 || codecType == 0x1008, "Unsupported codec type {}", codecType);
+        return RET_ERROR(SCE_AUDIODEC_ERROR_INVALID_TYPE);
+    }
+
     STUBBED("fake size");
     return 53;
+    //return (&DAT_81027750)[index] * channels + (&DAT_81027770)[index];
 }
 
 EXPORT(int, sceAudiodecGetInternalError) {
