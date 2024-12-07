@@ -1766,8 +1766,7 @@ static SpirvCode convert_gxp_to_spirv_impl(const SceGxmProgram &program, const s
 
     spv::SpvBuildLogger spv_logger;
     spv::Builder b(spv_version, 0x1337 << 12, &spv_logger);
-    b.setSourceFile(shader_hash);
-    b.setEmitOpLines();
+    b.setDebugMainSourceFile(shader_hash);
     b.addSourceExtension("gxp");
     if (features.support_memory_mapping)
         b.setMemoryModel(spv::AddressingModelPhysicalStorageBuffer64, spv::MemoryModelGLSL450);
