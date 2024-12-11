@@ -19,6 +19,7 @@
 
 #include <compat/state.h>
 #include <config/config.h>
+#include <io/vfs.h>
 #include <lang/state.h>
 #include <np/state.h>
 
@@ -75,24 +76,15 @@ struct AppInfo {
     size_t size;
 };
 
-struct IconData {
-    int32_t width = 0;
-    int32_t height = 0;
-
-    std::unique_ptr<void, void (*)(void *)> data;
-
-    IconData();
-};
-
 struct IconAsyncLoader {
     std::mutex mutex;
 
-    std::unordered_map<std::string, IconData> icon_data;
+    std::unordered_map<std::string, vfs::FileBuffer> icon_data;
 
     std::thread thread;
     std::atomic_bool quit = false;
 
-    void commit(GuiState &gui);
+    void commit(GuiState &gui, EmuEnvState &emuenv);
 
     IconAsyncLoader(GuiState &gui, EmuEnvState &emuenv, const std::vector<gui::App> &app_list);
     ~IconAsyncLoader();
@@ -245,8 +237,6 @@ struct InfoMessage {
 };
 
 struct GuiState {
-    std::unique_ptr<ImGui_State> imgui_state;
-
     bool renderer_focused = true;
     gui::FileMenuState file_menu;
     gui::DebugMenuState debug_menu;
@@ -335,7 +325,7 @@ struct GuiState {
 
     std::uint32_t trophy_window_frame_count{ 0 };
     TrophyAnimationStage trophy_window_frame_stage{ TrophyAnimationStage::SLIDE_IN };
-    ImTextureID trophy_window_icon{};
+    ImGui_Texture trophy_window_icon{};
 
     std::vector<NpTrophyUnlockCallbackData> trophy_unlock_display_requests;
     std::mutex trophy_unlock_display_requests_access_mutex;
