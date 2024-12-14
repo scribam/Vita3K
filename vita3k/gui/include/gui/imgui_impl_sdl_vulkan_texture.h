@@ -21,8 +21,6 @@
 #include <renderer/vulkan/state.h>
 #include <vkutil/vkutil.h>
 
-extern VkDescriptorPool imgui_descriptor_pool;
-
 struct VKTextureData : ImguiTextureData
 {
 private:
