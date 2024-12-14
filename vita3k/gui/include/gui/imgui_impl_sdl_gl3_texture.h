@@ -17,33 +17,17 @@
 
 #pragma once
 
-#include <string>
+#include <glutil/gl.h>
+#include <gui/imgui_impl_sdl_state.h>
 
-struct Config;
-struct EmuEnvState;
-struct SDL_Window;
-struct GuiState;
-class Root;
+struct GLTextureData : ImguiTextureData
+{
+private:
+    GLuint texture = 0;
 
-namespace app {
+public:
+    GLTextureData(unsigned char *data, int width, int height);
+    ~GLTextureData() override;
 
-/// Describes the state of the application to be run
-enum class AppRunType {
-    /// Run type is unknown
-    Unknown,
-    /// Extracted, files are as they are on console
-    Extracted,
+    ImTextureID GetImTextureID() const override;
 };
-
-void init_paths(Root &root_paths);
-bool init(EmuEnvState &state, Config &cfg, const Root &root_paths);
-bool late_init(EmuEnvState &state);
-void destroy(EmuEnvState &emuenv, GuiState &gui);
-void update_viewport(EmuEnvState &state);
-void switch_state(EmuEnvState &emuenv, const bool pause);
-void error_dialog(const std::string &message, SDL_Window *window = nullptr);
-
-void set_window_title(EmuEnvState &emuenv);
-void calculate_fps(EmuEnvState &emuenv);
-
-} // namespace app
