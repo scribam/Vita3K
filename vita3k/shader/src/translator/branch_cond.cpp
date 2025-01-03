@@ -279,8 +279,6 @@ spv::Id USSETranslatorVisitor::vtst_impl(Instruction inst, ExtPredicate pred, in
 
     const char *used_comp_str = tb_comp_str[compare_include_equal][sign_test];
 
-    m_b.setLine(m_recompiler.cur_pc);
-
     if (is_sub_opcode(inst.opcode)) {
         if (mask) {
             LOG_DISASM("{:016x}: {}{}.{}.{}.{} {} {} {}", m_instr, disasm::e_predicate_str(pred), "CMPMSK", used_comp_str, disasm::data_type_str(store_data_type),
