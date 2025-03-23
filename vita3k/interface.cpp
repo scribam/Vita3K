@@ -20,6 +20,7 @@
 #include "module/load_module.h"
 
 #include <app/functions.h>
+#include <config/functions.h>
 #include <config/state.h>
 #include <ctrl/functions.h>
 #include <ctrl/state.h>
@@ -667,73 +668,6 @@ bool handle_events(EmuEnvState &emuenv, GuiState &gui) {
                 emuenv.display.vblank_thread->join();
             }
             return false;
-
-        case SDL_KEYDOWN: {
-            const auto get_sce_ctrl_btn_from_scancode = [&emuenv](const SDL_Scancode scancode) {
-                if (scancode == emuenv.cfg.keyboard_button_up)
-                    return SCE_CTRL_UP;
-                else if (scancode == emuenv.cfg.keyboard_button_right)
-                    return SCE_CTRL_RIGHT;
-                else if (scancode == emuenv.cfg.keyboard_button_down)
-                    return SCE_CTRL_DOWN;
-                else if (scancode == emuenv.cfg.keyboard_button_left)
-                    return SCE_CTRL_LEFT;
-                else if (scancode == emuenv.cfg.keyboard_button_l1)
-                    return SCE_CTRL_L1;
-                else if (scancode == emuenv.cfg.keyboard_button_r1)
-                    return SCE_CTRL_R1;
-                else if (scancode == emuenv.cfg.keyboard_button_triangle)
-                    return SCE_CTRL_TRIANGLE;
-                else if (scancode == emuenv.cfg.keyboard_button_circle)
-                    return SCE_CTRL_CIRCLE;
-                else if (scancode == emuenv.cfg.keyboard_button_cross)
-                    return SCE_CTRL_CROSS;
-                else if (scancode == emuenv.cfg.keyboard_button_psbutton)
-                    return SCE_CTRL_PSBUTTON;
-                else
-                    return static_cast<SceCtrlButtons>(0);
-            };
-
-            // Get Sce Ctrl button from key
-            const auto sce_ctrl_btn = get_sce_ctrl_btn_from_scancode(event.key.keysym.scancode);
-
-            if (gui.is_capturing_keys && event.key.keysym.scancode) {
-                gui.is_key_capture_dropped = false;
-                if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
-                    LOG_ERROR("Key is reserved!");
-                    gui.captured_key = gui.old_captured_key;
-                    gui.is_key_capture_dropped = true;
-                } else {
-                    gui.captured_key = static_cast<int>(event.key.keysym.scancode);
-                }
-                gui.is_capturing_keys = false;
-            }
-
-            if (ImGui::GetIO().WantTextInput || gui.is_key_locked)
-                continue;
-
-            // toggle gui state
-            if (allow_switch_state && (event.key.keysym.scancode == emuenv.cfg.keyboard_gui_toggle_gui))
-                emuenv.display.imgui_render = !emuenv.display.imgui_render;
-            if (event.key.keysym.scancode == emuenv.cfg.keyboard_gui_toggle_touch && !gui.is_key_capture_dropped)
-                toggle_touchscreen();
-            if (event.key.keysym.scancode == emuenv.cfg.keyboard_gui_fullscreen && !gui.is_key_capture_dropped)
-                switch_full_screen(emuenv);
-            if (event.key.keysym.scancode == emuenv.cfg.keyboard_toggle_texture_replacement && !gui.is_key_capture_dropped)
-                toggle_texture_replacement(emuenv);
-            if (event.key.keysym.scancode == emuenv.cfg.keyboard_take_screenshot && !gui.is_key_capture_dropped)
-                take_screenshot(emuenv);
-
-            if (sce_ctrl_btn != 0) {
-                if (last_buttons.find(sce_ctrl_btn) != last_buttons.end()) {
-                    continue;
-                }
-                last_buttons.insert(sce_ctrl_btn);
-                ui_navigation(sce_ctrl_btn);
-            }
-
-            break;
-        }
         case SDL_KEYUP:
             gui.is_key_locked = false;
             break;
@@ -804,6 +738,56 @@ bool handle_events(EmuEnvState &emuenv, GuiState &gui) {
             break;
         }
         }
+    }
+
+    if (!ImGui::GetIO().WantTextInput && !gui.is_capturing_keys && !gui.is_key_locked) {
+        // TODO: add controller
+        const auto get_sce_ctrl_btn_from_scancode = [&emuenv]() {
+            if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_up) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_up)))
+                return SCE_CTRL_UP;
+            if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_right) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_right)))
+                return SCE_CTRL_RIGHT;
+            if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_down) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_down)))
+                return SCE_CTRL_DOWN;
+            if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_left) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_left)))
+                return SCE_CTRL_LEFT;
+            if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_l1) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_l1)))
+                return SCE_CTRL_L1;
+            if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_r1) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_r1)))
+                return SCE_CTRL_R1;
+            if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_triangle) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_triangle)))
+                return SCE_CTRL_TRIANGLE;
+            if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_circle) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_circle)))
+                return SCE_CTRL_CIRCLE;
+            if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_cross) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_cross)))
+                return SCE_CTRL_CROSS;
+            if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_psbutton) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_psbutton)))
+                return SCE_CTRL_PSBUTTON;
+            return static_cast<SceCtrlButtons>(0);
+        };
+
+        // Get Sce Ctrl button from key
+        const auto sce_ctrl_btn = get_sce_ctrl_btn_from_scancode();
+        if (sce_ctrl_btn != 0) {
+            if (last_buttons.find(sce_ctrl_btn) == last_buttons.end()) {
+                last_buttons.insert(sce_ctrl_btn);
+                ui_navigation(sce_ctrl_btn);
+            }
+        }
+
+        // toggle gui state
+        // FIXME?
+        if (allow_switch_state && (static_cast<ImGuiKey>(emuenv.cfg.keyboard_gui_toggle_gui) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_gui_toggle_gui)))
+            emuenv.display.imgui_render = !emuenv.display.imgui_render;
+
+        if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_gui_toggle_touch) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_gui_toggle_touch)))
+            toggle_touchscreen();
+        if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_gui_fullscreen) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_gui_fullscreen)))
+            switch_full_screen(emuenv);
+        if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_toggle_texture_replacement) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_toggle_texture_replacement)))
+            toggle_texture_replacement(emuenv);
+        if ((static_cast<ImGuiKey>(emuenv.cfg.keyboard_take_screenshot) != ImGuiKey_None) && ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_take_screenshot)))
+            take_screenshot(emuenv);
     }
 
     return true;
