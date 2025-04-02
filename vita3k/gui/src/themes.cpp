@@ -25,7 +25,6 @@
 #include <util/string_utils.h>
 
 #include <pugixml.hpp>
-#include <stb_image.h>
 
 namespace gui {
 
@@ -39,27 +38,20 @@ std::string get_theme_title_from_buffer(const vfs::FileBuffer &buffer) {
 static constexpr ImVec2 background_size(960.f, 512.f), background_preview_size(226.f, 128.f);
 
 bool init_user_background(GuiState &gui, EmuEnvState &emuenv, const std::string &background_path) {
+    gui.user_backgrounds[background_path] = {};
+
     auto background_path_path = fs_utils::utf8_to_path(background_path);
     if (!fs::exists(background_path_path)) {
         LOG_WARN("Background doesn't exist: {}.", background_path_path);
         return false;
     }
 
-    int32_t width = 0;
-    int32_t height = 0;
-
     FILE *f = FOPEN(background_path_path.c_str(), "rb");
-    stbi_uc *data = stbi_load_from_file(f, &width, &height, nullptr, STBI_rgb_alpha);
-
-    if (!data) {
-        LOG_ERROR("Invalid or corrupted background: {}.", background_path_path);
-        return false;
-    }
-
-    gui.user_backgrounds[background_path] = {};
-    gui.user_backgrounds[background_path].init(gui.imgui_state.get(), data, width, height);
-    stbi_image_free(data);
+    gui.user_backgrounds[background_path].loadTextureFromFile(emuenv.renderer.get(), f);
     fclose(f);
+
+    int32_t width = gui.user_backgrounds[background_path].width;
+    int32_t height = gui.user_backgrounds[background_path].height;
 
     // Resize background to fit screen size if needed (keep aspect ratio)
     auto &user_background = gui.user_backgrounds_infos[background_path];
@@ -76,7 +68,7 @@ bool init_user_background(GuiState &gui, EmuEnvState &emuenv, const std::string 
     user_background.prev_pos = ImVec2((background_preview_size.x / 2.f) - (user_background.prev_size.x / 2.f), (background_preview_size.y / 2.f) - (user_background.prev_size.y / 2.f));
     user_background.pos = ImVec2((background_size.x / 2.f) - (user_background.size.x / 2.f), (background_size.y / 2.f) - (user_background.size.y / 2.f));
 
-    return gui.user_backgrounds.contains(background_path);
+    return true;
 }
 
 bool init_user_backgrounds(GuiState &gui, EmuEnvState &emuenv) {
@@ -153,8 +145,6 @@ void init_theme_start_background(GuiState &gui, EmuEnvState &emuenv, const std::
         break;
     }
 
-    int32_t width = 0;
-    int32_t height = 0;
     vfs::FileBuffer buffer;
 
     if (theme_start_name.empty()) {
@@ -172,17 +162,11 @@ void init_theme_start_background(GuiState &gui, EmuEnvState &emuenv, const std::
         LOG_WARN("Background not found: '{}', for content id: {}.", theme_start_name, content_id);
         return;
     }
-    stbi_uc *data = stbi_load_from_memory(&buffer[0], static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-    if (!data) {
-        LOG_ERROR("Invalid Background: '{}' for content id: {}.", theme_start_name, content_id);
-        return;
-    }
 
-    gui.start_background.init(gui.imgui_state.get(), data, width, height);
-    stbi_image_free(data);
+    gui.start_background.loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
 }
 
-bool init_user_start_background(GuiState &gui, const std::string &image_path) {
+bool init_user_start_background(GuiState &gui, EmuEnvState &emuenv, const std::string &image_path) {
     const fs::path image_path_path = fs_utils::utf8_to_path(image_path);
     if (!fs::exists(image_path_path)) {
         LOG_WARN("Image doesn't exist: {}.", image_path);
@@ -192,22 +176,11 @@ bool init_user_start_background(GuiState &gui, const std::string &image_path) {
     start_param = {};
     gui.start_background = {};
 
-    int32_t width = 0;
-    int32_t height = 0;
-
     FILE *f = FOPEN(image_path_path.c_str(), "rb");
-    stbi_uc *data = stbi_load_from_file(f, &width, &height, nullptr, STBI_rgb_alpha);
-
-    if (!data) {
-        LOG_ERROR("Invalid or corrupted image: {}.", image_path);
-        return false;
-    }
-
-    gui.start_background.init(gui.imgui_state.get(), data, width, height);
-    stbi_image_free(data);
+    gui.start_background.loadTextureFromFile(emuenv.renderer.get(), f);
     fclose(f);
 
-    return gui.start_background;
+    return true;
 }
 
 bool init_theme(GuiState &gui, EmuEnvState &emuenv, const std::string &content_id) {
@@ -281,8 +254,6 @@ bool init_theme(GuiState &gui, EmuEnvState &emuenv, const std::string &content_i
                     notice_name[NoticeIcon::NEW] = info_bar_prop.child("m_newNoticeFilePath").text().as_string();
 
                 for (const auto &notice : notice_name) {
-                    int32_t width = 0;
-                    int32_t height = 0;
                     vfs::FileBuffer buffer;
 
                     const auto type = notice.first;
@@ -294,13 +265,8 @@ bool init_theme(GuiState &gui, EmuEnvState &emuenv, const std::string &content_i
                         LOG_WARN("Notice icon, Name: '{}', Not found for content id: {}.", name, content_id);
                         continue;
                     }
-                    stbi_uc *data = stbi_load_from_memory(&buffer[0], static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-                    if (!data) {
-                        LOG_ERROR("Invalid notice icon for content id: {}.", content_id);
-                        continue;
-                    }
-                    gui.theme_information_bar_notice[type].init(gui.imgui_state.get(), data, width, height);
-                    stbi_image_free(data);
+
+                    gui.theme_information_bar_notice[type].loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
                 }
             }
         } else
@@ -320,8 +286,6 @@ bool init_theme(GuiState &gui, EmuEnvState &emuenv, const std::string &content_i
     }
 
     for (const auto &icon : theme_icon_name) {
-        int32_t width = 0;
-        int32_t height = 0;
         vfs::FileBuffer buffer;
 
         const auto &title_id = icon.first;
@@ -339,19 +303,11 @@ bool init_theme(GuiState &gui, EmuEnvState &emuenv, const std::string &content_i
             } else
                 LOG_INFO("Default icon found for system App {}.", title_id);
         }
-        stbi_uc *data = stbi_load_from_memory(buffer.data(), static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-        if (!data) {
-            LOG_ERROR("Name: '{}', Invalid icon for content id: {}.", name, content_id);
-            continue;
-        }
 
-        gui.app_selector.sys_apps_icon[title_id].init(gui.imgui_state.get(), data, width, height);
-        stbi_image_free(data);
+        gui.app_selector.sys_apps_icon[title_id].loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
     }
 
     for (const auto &bg : theme_bg_name) {
-        int32_t width = 0;
-        int32_t height = 0;
         vfs::FileBuffer buffer;
 
         if (content_id == "default")
@@ -363,14 +319,8 @@ bool init_theme(GuiState &gui, EmuEnvState &emuenv, const std::string &content_i
             LOG_WARN("Background not found: '{}', for content id: {}.", bg, content_id);
             continue;
         }
-        stbi_uc *data = stbi_load_from_memory(&buffer[0], static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-        if (!data) {
-            LOG_ERROR("Invalid Background: '{}', for content id: {}.", bg, content_id);
-            continue;
-        }
 
-        gui.theme_backgrounds.emplace_back(gui.imgui_state.get(), data, width, height);
-        stbi_image_free(data);
+        gui.theme_backgrounds.emplace_back().loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
     }
 
     return !gui.theme_backgrounds.empty();
