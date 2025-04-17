@@ -38,11 +38,7 @@ option(CAPSTONE_ARCHITECTURE_DEFAULT "Whether architectures are enabled by defau
 option(CAPSTONE_ARM_SUPPORT "ARM support" ON)
 add_subdirectory(capstone EXCLUDE_FROM_ALL)
 
-add_library(dirent INTERFACE)
-
-if(MSVC)
-	target_include_directories(dirent INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/dirent/include")
-endif()
+add_subdirectory(dirent EXCLUDE_FROM_ALL)
 
 add_library(printf INTERFACE)
 target_include_directories(printf INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/printf")
