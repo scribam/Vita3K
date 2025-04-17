@@ -17,16 +17,12 @@
 
 #include "private.h"
 
-#include <gui/functions.h>
-
-#include <gui/imgui_impl_sdl.h>
-#include <gui/state.h>
-#include <renderer/state.h>
-
-#include <boost/algorithm/string/trim.hpp>
 #include <config/state.h>
 #include <dialog/state.h>
 #include <display/state.h>
+#include <gui/functions.h>
+#include <gui/imgui_impl_sdl_vulkan_texture.h>
+#include <gui/state.h>
 #include <io/VitaIoDevice.h>
 #include <io/state.h>
 #include <io/vfs.h>
@@ -34,12 +30,16 @@
 #include <packages/sfo.h>
 #include <regmgr/functions.h>
 #include <touch/functions.h>
+#include <renderer/vulkan/state.h>
 #include <util/fs.h>
 #include <util/log.h>
 #include <util/string_utils.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include <boost/algorithm/string/trim.hpp>
+
+#include <imgui_impl_opengl3.h>
+#include <imgui_impl_sdl2.h>
+#include <imgui_impl_vulkan.h>
 
 #include <fstream>
 #include <string>
@@ -322,8 +322,7 @@ vfs::FileBuffer init_default_icon(GuiState &gui, EmuEnvState &emuenv) {
     return buffer;
 }
 
-static IconData load_app_icon(GuiState &gui, EmuEnvState &emuenv, const std::string &app_path) {
-    IconData image;
+static vfs::FileBuffer load_app_icon(GuiState &gui, EmuEnvState &emuenv, const std::string &app_path) {
     vfs::FileBuffer buffer;
 
     const auto APP_INDEX = get_app_index(gui, app_path);
@@ -337,34 +336,23 @@ static IconData load_app_icon(GuiState &gui, EmuEnvState &emuenv, const std::str
         } else
             LOG_INFO("Default icon found for App {}, [{}] in path {}.", APP_INDEX->title_id, APP_INDEX->title, app_path);
     }
-    image.data.reset(stbi_load_from_memory(
-        buffer.data(), static_cast<int>(buffer.size()),
-        &image.width, &image.height, nullptr, STBI_rgb_alpha));
-    if (!image.data || image.width != 128 || image.height != 128) {
-        LOG_ERROR("Invalid icon for title {}, [{}] in path {}.",
-            APP_INDEX->title_id, APP_INDEX->title, app_path);
-        return {};
-    }
 
-    return image;
+    return buffer;
 }
 
 void init_app_icon(GuiState &gui, EmuEnvState &emuenv, const std::string &app_path) {
-    IconData data = load_app_icon(gui, emuenv, app_path);
-    if (data.data) {
-        gui.app_selector.user_apps_icon[app_path].init(gui.imgui_state.get(), data.data.get(), data.width, data.height);
+    vfs::FileBuffer buffer = load_app_icon(gui, emuenv, app_path);
+    if (!buffer.empty()) {
+        gui.app_selector.user_apps_icon[app_path].loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
     }
 }
 
-IconData::IconData()
-    : data(nullptr, stbi_image_free) {}
-
-void IconAsyncLoader::commit(GuiState &gui) {
+void IconAsyncLoader::commit(GuiState &gui, EmuEnvState &emuenv) {
     std::lock_guard<std::mutex> lock(mutex);
 
-    for (const auto &pair : icon_data) {
-        if (pair.second.data) {
-            gui.app_selector.user_apps_icon[pair.first].init(gui.imgui_state.get(), pair.second.data.get(), pair.second.width, pair.second.height);
+    for (const auto &[app_path, buffer] : icon_data) {
+        if (!buffer.empty()) {
+            gui.app_selector.user_apps_icon[app_path].loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
         }
     }
 
@@ -388,7 +376,7 @@ IconAsyncLoader::IconAsyncLoader(GuiState &gui, EmuEnvState &emuenv, const std::
                 return;
 
             // load the actual texture
-            IconData data = load_app_icon(gui, emuenv, path);
+            vfs::FileBuffer data = load_app_icon(gui, emuenv, path);
 
             // Duplicate code here from init_app_icon
             {
@@ -413,8 +401,6 @@ void init_app_background(GuiState &gui, EmuEnvState &emuenv, const std::string &
         return;
 
     const auto APP_INDEX = get_app_index(gui, app_path);
-    int32_t width = 0;
-    int32_t height = 0;
     vfs::FileBuffer buffer;
 
     const auto is_sys = app_path.starts_with("NPXS") && (app_path != "NPXS10007");
@@ -430,13 +416,7 @@ void init_app_background(GuiState &gui, EmuEnvState &emuenv, const std::string &
         return;
     }
 
-    stbi_uc *data = stbi_load_from_memory(&buffer[0], static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-    if (!data) {
-        LOG_ERROR("Invalid background for application {} [{}].", title, app_path);
-        return;
-    }
-    gui.apps_background[app_path].init(gui.imgui_state.get(), data, width, height);
-    stbi_image_free(data);
+    gui.apps_background[app_path].loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
 }
 
 std::string get_sys_lang_name(uint32_t lang_id) {
@@ -715,36 +695,71 @@ std::map<DateTime, std::string> get_date_time(GuiState &gui, EmuEnvState &emuenv
     return date_time_str;
 }
 
-ImTextureID load_image(GuiState &gui, const uint8_t *data, const int size) {
-    int width;
-    int height;
-
-    stbi_uc *img_data = stbi_load_from_memory(data, size, &width, &height,
-        nullptr, STBI_rgb_alpha);
-
-    if (!img_data)
-        return nullptr;
-
-    const auto handle = ImGui_ImplSdl_CreateTexture(gui.imgui_state.get(), img_data, width, height);
-    stbi_image_free(img_data);
-
-    return handle;
-}
-
 void pre_init(GuiState &gui, EmuEnvState &emuenv) {
     if (ImGui::GetCurrentContext() == NULL) {
         ImGui::CreateContext();
     }
-    gui.imgui_state.reset(ImGui_ImplSdl_Init(emuenv.renderer.get(), emuenv.window.get()));
 
-    assert(gui.imgui_state);
+    if (emuenv.renderer->current_backend == renderer::Backend::OpenGL) {
+        ImGui_ImplOpenGL3_Init(nullptr);
+        ImGui_ImplSDL2_InitForOpenGL(emuenv.window.get(), nullptr);
+    } else if (emuenv.renderer->current_backend == renderer::Backend::Vulkan) {
+        auto& vk_state = dynamic_cast<renderer::vulkan::VKState &>(*emuenv.renderer);
+
+        /**
+         * Create descriptor pool
+         */
+        static constexpr uint32_t nb_descriptor_sets = 1024;
+
+        vk::DescriptorPoolSize pool_size{
+            .type = vk::DescriptorType::eCombinedImageSampler,
+            .descriptorCount = nb_descriptor_sets
+        };
+        vk::DescriptorPoolCreateInfo pool_info{
+            .maxSets = nb_descriptor_sets,
+        };
+        pool_info.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
+        pool_info.setPoolSizes(pool_size);
+        imgui_descriptor_pool = vk_state.device.createDescriptorPool(pool_info);
+
+        ImGui_ImplSDL2_InitForVulkan(emuenv.window.get());
+        ImGui_ImplVulkan_InitInfo init_info = {};
+        init_info.Instance = vk_state.instance;
+        init_info.PhysicalDevice = vk_state.physical_device;
+        init_info.Device = vk_state.device;
+        init_info.QueueFamily = vk_state.general_family_index;
+        init_info.Queue = vk_state.general_queue;
+        init_info.PipelineCache = VK_NULL_HANDLE;
+        init_info.DescriptorPool = imgui_descriptor_pool;
+        init_info.RenderPass = vk_state.screen_renderer.default_render_pass;
+        init_info.Subpass = 0;
+        init_info.MinImageCount = vk_state.screen_renderer.surface_capabilities.minImageCount;
+        init_info.ImageCount = vk_state.screen_renderer.swapchain_size;
+        init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+        init_info.Allocator = nullptr;
+        init_info.CheckVkResultFn = [](VkResult err) {
+            if (err == 0)
+                return;
+            LOG_ERROR("[vulkan] Error: VkResult = {}", static_cast<int>(err));
+            if (err < 0)
+                abort();
+        };
+
+#if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
+        ImGui_ImplVulkan_LoadFunctions([](const char *function, void *user_data) {
+            return VULKAN_HPP_DEFAULT_DISPATCHER.vkGetInstanceProcAddr((VkInstance)user_data, function);
+        }, init_info.Instance);
+#endif
+
+        ImGui_ImplVulkan_Init(&init_info);
+    } else {
+        LOG_ERROR("Missing ImGui init for backend {}.", static_cast<int>(emuenv.renderer->current_backend));
+        return;
+    }
 
     init_style(emuenv);
     init_font(gui, emuenv);
     lang::init_lang(gui.lang, emuenv);
-
-    bool result = ImGui_ImplSdl_CreateDeviceObjects(gui.imgui_state.get());
-    assert(result);
 }
 
 void init(GuiState &gui, EmuEnvState &emuenv) {
@@ -768,18 +783,51 @@ void init(GuiState &gui, EmuEnvState &emuenv) {
 }
 
 void draw_begin(GuiState &gui, EmuEnvState &emuenv) {
-    ImGui_ImplSdl_NewFrame(gui.imgui_state.get());
+    if (emuenv.renderer->current_backend == renderer::Backend::OpenGL) {
+        ImGui_ImplOpenGL3_NewFrame();
+    } else if (emuenv.renderer->current_backend == renderer::Backend::Vulkan) {
+        ImGui_ImplVulkan_NewFrame();
+    }
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
     emuenv.renderer_focused = !ImGui::GetIO().WantCaptureMouse;
 
     // async loading, renderer texture creation needs to be synchronous
     // cant bind opengl context outside main thread on macos now
     if (gui.app_selector.icon_async_loader)
-        gui.app_selector.icon_async_loader->commit(gui);
+        gui.app_selector.icon_async_loader->commit(gui, emuenv);
 }
 
-void draw_end(GuiState &gui) {
+void draw_end(GuiState &gui, EmuEnvState &emuenv) {
     ImGui::Render();
-    ImGui_ImplSdl_RenderDrawData(gui.imgui_state.get());
+
+    switch (emuenv.renderer->current_backend) {
+    case renderer::Backend::OpenGL:
+        return ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    case renderer::Backend::Vulkan:
+        auto &vk_state = dynamic_cast<renderer::vulkan::VKState &>(*emuenv.renderer);
+
+        if (vk_state.screen_renderer.swapchain_image_idx == ~0) {
+            // this happen in the game selection screen
+            if (!vk_state.screen_renderer.acquire_swapchain_image(true))
+                return;
+        } else if (!vk_state.screen_renderer.current_cmd_buffer) {
+            // Can happen while resizing the window
+            return;
+        }
+
+#if 0
+        // FIXME
+        if (vk_state.screen_renderer.need_rebuild) {
+            vk_state.device.destroy(bd->Pipeline);
+            ImGui_ImplVulkan_CreatePipeline(v->Device, v->Allocator, v->PipelineCache, v->RenderPass, v->MSAASamples, &bd->Pipeline, v->Subpass);
+            vk_state.screen_renderer.need_rebuild = false;
+        }
+#endif
+
+        return ImGui_ImplVulkan_RenderDrawData( ImGui::GetDrawData(), vk_state.screen_renderer.current_cmd_buffer);
+    }
 }
 
 void draw_touchpad_cursor(EmuEnvState &emuenv) {

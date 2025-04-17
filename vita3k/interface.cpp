@@ -44,7 +44,7 @@
 #include <util/log.h>
 #include <util/string_utils.h>
 
-#include <gui/imgui_impl_sdl.h>
+#include <imgui_impl_sdl2.h>
 
 #include <regex>
 
@@ -156,7 +156,7 @@ static bool install_archive_content(EmuEnvState &emuenv, GuiState *gui, const Zi
                 gui::draw_begin(*gui, emuenv);
                 gui::draw_ui(*gui, emuenv);
                 gui::draw_reinstall_dialog(&status, *gui, emuenv);
-                gui::draw_end(*gui);
+                gui::draw_end(*gui, emuenv);
                 emuenv.renderer->swap_window(emuenv.window.get());
             }
             switch (status) {
@@ -649,7 +649,7 @@ bool handle_events(EmuEnvState &emuenv, GuiState &gui) {
 
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
-        ImGui_ImplSdl_ProcessEvent(gui.imgui_state.get(), &event);
+        ImGui_ImplSDL2_ProcessEvent(&event);
         switch (event.type) {
         case SDL_QUIT:
             if (!emuenv.io.app_path.empty())

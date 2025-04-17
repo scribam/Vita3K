@@ -235,7 +235,6 @@ void delete_app(GuiState &gui, EmuEnvState &emuenv, const std::string &app_path)
             fs::remove_all(IMPORT_TEXTURES_PATH);
 
         if (gui.app_selector.user_apps_icon.contains(app_path)) {
-            gui.app_selector.user_apps_icon[app_path] = {};
             gui.app_selector.user_apps_icon.erase(app_path);
         }
 
