@@ -706,22 +706,6 @@ void pre_init(GuiState &gui, EmuEnvState &emuenv) {
     } else if (emuenv.renderer->current_backend == renderer::Backend::Vulkan) {
         auto& vk_state = dynamic_cast<renderer::vulkan::VKState &>(*emuenv.renderer);
 
-        /**
-         * Create descriptor pool
-         */
-        static constexpr uint32_t nb_descriptor_sets = 1024;
-
-        vk::DescriptorPoolSize pool_size{
-            .type = vk::DescriptorType::eCombinedImageSampler,
-            .descriptorCount = nb_descriptor_sets
-        };
-        vk::DescriptorPoolCreateInfo pool_info{
-            .maxSets = nb_descriptor_sets,
-        };
-        pool_info.setFlags(vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet);
-        pool_info.setPoolSizes(pool_size);
-        imgui_descriptor_pool = vk_state.device.createDescriptorPool(pool_info);
-
         ImGui_ImplSDL2_InitForVulkan(emuenv.window.get());
         ImGui_ImplVulkan_InitInfo init_info = {};
         init_info.ApiVersion = VK_API_VERSION_1_0;
@@ -731,7 +715,7 @@ void pre_init(GuiState &gui, EmuEnvState &emuenv) {
         init_info.QueueFamily = vk_state.general_family_index;
         init_info.Queue = vk_state.general_queue;
         init_info.PipelineCache = VK_NULL_HANDLE;
-        init_info.DescriptorPool = imgui_descriptor_pool;
+        init_info.DescriptorPoolSize = 1024;
         init_info.RenderPass = vk_state.screen_renderer.default_render_pass;
         init_info.Subpass = 0;
         init_info.MinImageCount = vk_state.screen_renderer.surface_capabilities.minImageCount;
