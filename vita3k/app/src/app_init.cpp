@@ -22,13 +22,14 @@
 #include <config/state.h>
 #include <config/version.h>
 #include <display/state.h>
-#include <emuenv/state.h>
-#include <gui/imgui_impl_sdl.h>
+#include <gui/imgui_impl_sdl_vulkan_texture.h>
 #include <gui/state.h>
+#include <emuenv/state.h>
 #include <io/functions.h>
 #include <kernel/state.h>
 #include <ngs/state.h>
 #include <renderer/state.h>
+#include <renderer/vulkan/state.h>
 
 #include <renderer/functions.h>
 #include <util/fs.h>
@@ -44,6 +45,10 @@
 #include <SDL.h>
 #include <SDL_video.h>
 #include <SDL_vulkan.h>
+
+#include <imgui_impl_opengl3.h>
+#include <imgui_impl_sdl2.h>
+#include <imgui_impl_vulkan.h>
 
 #ifdef _WIN32
 #include <SDL_syswm.h>
@@ -368,11 +373,15 @@ bool init(EmuEnvState &state, Config &cfg, const Root &root_paths) {
 #endif
     LOG_INFO("User pref path: {}", state.pref_path);
 
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
     if (ImGui::GetCurrentContext() == NULL) {
         ImGui::CreateContext();
     }
     ImGuiIO &io = ImGui::GetIO();
-    io.IniFilename = NULL;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.IniFilename = nullptr;
 
     state.backend_renderer = renderer::Backend::Vulkan;
 
@@ -499,8 +508,54 @@ bool late_init(EmuEnvState &state) {
     return true;
 }
 
-void destroy(EmuEnvState &emuenv, ImGui_State *imgui) {
-    ImGui_ImplSdl_Shutdown(imgui);
+void destroy(EmuEnvState &emuenv, GuiState &gui) {
+    switch (emuenv.renderer->current_backend) {
+    case renderer::Backend::OpenGL:
+        gui.app_selector.sys_apps_icon.clear();
+        gui.app_selector.user_apps_icon.clear();
+        gui.users_avatar.clear();
+        gui.themes_preview.clear();
+        gui.theme_backgrounds.clear();
+        gui.theme_information_bar_notice.clear();
+        gui.notice_info_icon.clear();
+        gui.user_backgrounds.clear();
+        gui.trophy_np_com_id_list_icons.clear();
+        gui.trophy_list.clear();
+        gui.start_background = {};
+        gui.apps_background.clear();
+        gui.live_area_contents.clear();
+        gui.live_items.clear();
+        gui.manuals.clear();
+        gui.trophy_window_icon = {};
+        ImGui_ImplOpenGL3_Shutdown();
+        break;
+    case renderer::Backend::Vulkan:
+        gui.app_selector.sys_apps_icon.clear();
+        gui.app_selector.user_apps_icon.clear();
+        gui.users_avatar.clear();
+        gui.themes_preview.clear();
+        gui.theme_backgrounds.clear();
+        gui.theme_information_bar_notice.clear();
+        gui.notice_info_icon.clear();
+        gui.user_backgrounds.clear();
+        gui.trophy_np_com_id_list_icons.clear();
+        gui.trophy_list.clear();
+        gui.start_background = {};
+        gui.apps_background.clear();
+        gui.live_area_contents.clear();
+        gui.live_items.clear();
+        gui.manuals.clear();
+        gui.trophy_window_icon = {};
+        ImGui_ImplVulkan_Shutdown();
+        dynamic_cast<renderer::vulkan::VKState &>(*emuenv.renderer).device.destroy(imgui_descriptor_pool);
+        break;
+    default:
+        LOG_ERROR("Missing ImGui init for backend {}.", static_cast<int>(emuenv.renderer->current_backend));
+        break;
+    }
+
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
 
 #ifdef USE_DISCORD
     discordrpc::shutdown();

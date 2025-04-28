@@ -86,7 +86,11 @@ add_subdirectory(libfat16)
 add_library(imgui STATIC imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_tables.cpp imgui/imgui_widgets.cpp imgui/misc/cpp/imgui_stdlib.cpp)
 target_compile_definitions(imgui PRIVATE IMGUI_DISABLE_DEMO_WINDOWS)
 target_include_directories(imgui PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/imgui"
+	"${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends"
 	"${CMAKE_CURRENT_SOURCE_DIR}/imgui_club/imgui_memory_editor/")
+
+target_sources(imgui PRIVATE imgui/backends/imgui_impl_opengl3.cpp imgui/backends/imgui_impl_sdl2.cpp imgui/backends/imgui_impl_vulkan.cpp)
+target_link_libraries(imgui PRIVATE sdl2 vulkan)
 
 add_library(miniz STATIC miniz/miniz.c miniz/miniz.h)
 target_include_directories(miniz PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/miniz")
@@ -236,8 +240,10 @@ add_library(CLI11 INTERFACE)
 target_include_directories(CLI11 INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/cli11")
 
 add_library(vulkan INTERFACE)
+target_compile_definitions(vulkan INTERFACE VK_NO_PROTOTYPES VULKAN_HPP_NO_CONSTRUCTORS VULKAN_HPP_NO_SPACESHIP_OPERATOR)
 target_include_directories(vulkan INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/VulkanMemoryAllocator-Hpp/Vulkan-Headers/include")
 if(APPLE)
+	target_compile_definitions(vulkan INTERFACE VK_ENABLE_BETA_EXTENSIONS)
 	if(NOT EXISTS "${CMAKE_BINARY_DIR}/external/MoltenVK-macos.tar")
 		message(STATUS "Downloading MoltenVK...")
 		file(DOWNLOAD https://github.com/KhronosGroup/MoltenVK/releases/download/v1.2.11-artifacts/MoltenVK-macos.tar
