@@ -33,7 +33,6 @@
 #include <pugixml.hpp>
 
 #include <chrono>
-#include <stb_image.h>
 
 namespace gui {
 
@@ -241,8 +240,6 @@ void init_live_area(GuiState &gui, EmuEnvState &emuenv, const std::string &app_p
             name["livearea-background"].erase(remove_if(name["livearea-background"].begin(), name["livearea-background"].end(), isspace), name["livearea-background"].end());
 
             for (const auto &contents : name) {
-                int32_t width = 0;
-                int32_t height = 0;
                 vfs::FileBuffer buffer;
 
                 if (contents.second.empty()) {
@@ -262,14 +259,8 @@ void init_live_area(GuiState &gui, EmuEnvState &emuenv, const std::string &app_p
                         LOG_WARN("Contents {} '{}' Not found for title {} [{}].", contents.first, contents.second, app_path, APP_INDEX->title);
                     continue;
                 }
-                stbi_uc *data = stbi_load_from_memory(&buffer[0], static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-                if (!data) {
-                    LOG_ERROR("Invalid Live Area Contents for title {} [{}].", app_path, APP_INDEX->title);
-                    continue;
-                }
 
-                gui.live_area_contents[app_path][contents.first].init(gui.imgui_state.get(), data, width, height);
-                stbi_image_free(data);
+                gui.live_area_contents[app_path][contents.first].loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
             }
 
             std::map<std::string, std::map<std::string, std::vector<std::string>>> items_name;
@@ -436,8 +427,6 @@ void init_live_area(GuiState &gui, EmuEnvState &emuenv, const std::string &app_p
                                 bg_name.erase(remove(bg_name.begin(), bg_name.end(), '\n'), bg_name.end());
                             bg_name.erase(remove_if(bg_name.begin(), bg_name.end(), isspace), bg_name.end());
 
-                            int32_t width = 0;
-                            int32_t height = 0;
                             vfs::FileBuffer buffer;
 
                             if (app_device == VitaIoDevice::vs0)
@@ -450,15 +439,10 @@ void init_live_area(GuiState &gui, EmuEnvState &emuenv, const std::string &app_p
                                     LOG_WARN("background, Id: {}, Name: '{}', Not found for title: {} [{}].", item.first, bg_name, app_path, APP_INDEX->title);
                                 continue;
                             }
-                            stbi_uc *data = stbi_load_from_memory(&buffer[0], static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-                            if (!data) {
-                                LOG_ERROR("Frame: {}, Invalid Live Area Contents for title: {} [{}].", item.first, app_path, APP_INDEX->title);
-                                continue;
-                            }
 
-                            items_size[app_path][item.first]["background"] = ImVec2(static_cast<float>(width), static_cast<float>(height));
-                            gui.live_items[app_path][item.first]["background"].emplace_back(gui.imgui_state.get(), data, width, height);
-                            stbi_image_free(data);
+                            auto &live_item_background = gui.live_items[app_path][item.first]["background"].emplace_back(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
+
+                            items_size[app_path][item.first]["background"] = ImVec2(static_cast<float>(live_item_background.width), static_cast<float>(live_item_background.height));
                         }
                     }
 
@@ -468,8 +452,6 @@ void init_live_area(GuiState &gui, EmuEnvState &emuenv, const std::string &app_p
                                 img_name.erase(remove(img_name.begin(), img_name.end(), '\n'), img_name.end());
                             img_name.erase(remove_if(img_name.begin(), img_name.end(), isspace), img_name.end());
 
-                            int32_t width = 0;
-                            int32_t height = 0;
                             vfs::FileBuffer buffer;
 
                             if (app_device == VitaIoDevice::vs0)
@@ -482,15 +464,10 @@ void init_live_area(GuiState &gui, EmuEnvState &emuenv, const std::string &app_p
                                     LOG_WARN("Image, Id: {} Name: '{}', Not found for title {} [{}].", item.first, img_name, app_path, APP_INDEX->title);
                                 continue;
                             }
-                            stbi_uc *data = stbi_load_from_memory(&buffer[0], static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-                            if (!data) {
-                                LOG_ERROR("Frame: {}, Invalid Live Area Contents for title: {} [{}].", item.first, app_path, APP_INDEX->title);
-                                continue;
-                            }
 
-                            items_size[app_path][item.first]["image"] = ImVec2(static_cast<float>(width), static_cast<float>(height));
-                            gui.live_items[app_path][item.first]["image"].emplace_back(gui.imgui_state.get(), data, width, height);
-                            stbi_image_free(data);
+                            auto &live_item_image = gui.live_items[app_path][item.first]["image"].emplace_back(emuenv.renderer.get(), &buffer[0], static_cast<int>(buffer.size()));
+
+                            items_size[app_path][item.first]["image"] = ImVec2(static_cast<float>(live_item_image.width), static_cast<float>(live_item_image.height));
                         }
                     }
                 }

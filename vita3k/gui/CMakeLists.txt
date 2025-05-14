@@ -2,10 +2,9 @@ add_library(
 	gui
 	STATIC
 	include/gui/functions.h
-	include/gui/imgui_impl_sdl_gl3.h
+	include/gui/imgui_impl_sdl_gl3_texture.h
 	include/gui/imgui_impl_sdl_state.h
-	include/gui/imgui_impl_sdl_vulkan.h
-	include/gui/imgui_impl_sdl.h
+	include/gui/imgui_impl_sdl_vulkan_texture.h
 	include/gui/state.h
 	src/app_context_menu.cpp
 	src/archive_install_dialog.cpp
@@ -18,9 +17,9 @@ add_library(
 	src/gui.cpp
 	src/home_screen.cpp
 	src/ime.cpp
-	src/imgui_impl_sdl_gl3.cpp
-	src/imgui_impl_sdl_vulkan.cpp
-	src/imgui_impl_sdl.cpp
+    src/imgui_impl_sdl_gl3_texture.cpp
+	src/imgui_impl_sdl_texture.cpp
+	src/imgui_impl_sdl_vulkan_texture.cpp
 	src/information_bar.cpp
 	src/initial_setup.cpp
 	src/license_install_dialog.cpp

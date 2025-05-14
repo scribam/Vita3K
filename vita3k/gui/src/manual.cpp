@@ -26,8 +26,6 @@
 
 #include <util/log.h>
 
-#include <stb_image.h>
-
 namespace gui {
 
 void open_manual(GuiState &gui, EmuEnvState &emuenv, const std::string &app_path) {
@@ -100,24 +98,13 @@ bool init_manual(GuiState &gui, EmuEnvState &emuenv, const std::string &app_path
         if (!vfs::read_app_file(buffer, emuenv.pref_path, app_path, page_path))
             break;
 
-        // Load image data from memory buffer and check if it's valid
-        int32_t width, height;
-        stbi_uc *data = stbi_load_from_memory(buffer.data(), static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-        if (!data) {
-            LOG_ERROR("Invalid manual image for title: {} [{}] in path: {}.", app_path, APP_INDEX->title, page_path);
-            return false;
-        }
-
         // Add manual image to vector
-        gui.manuals.emplace_back(gui.imgui_state.get(), data, width, height);
+        auto &manual_image = gui.manuals.emplace_back(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
 
         // Calculate height of the page
-        const auto ratio = static_cast<float>(width) / static_cast<float>(height);
-        height = static_cast<int32_t>(960.f / ratio);
+        const auto ratio = static_cast<float>(manual_image.width) / static_cast<float>(manual_image.height);
+        int32_t height = static_cast<int32_t>(960.f / ratio);
         height_manual_pages.push_back(height);
-
-        // Free image data
-        stbi_image_free(data);
     }
 
     return !gui.manuals.empty();
