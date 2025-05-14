@@ -547,7 +547,6 @@ void destroy(EmuEnvState &emuenv, GuiState &gui) {
         gui.manuals.clear();
         gui.trophy_window_icon = {};
         ImGui_ImplVulkan_Shutdown();
-        dynamic_cast<renderer::vulkan::VKState &>(*emuenv.renderer).device.destroy(imgui_descriptor_pool);
         break;
     default:
         LOG_ERROR("Missing ImGui init for backend {}.", static_cast<int>(emuenv.renderer->current_backend));
