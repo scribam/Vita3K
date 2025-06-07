@@ -192,8 +192,6 @@ void close_system_app(GuiState &gui, EmuEnvState &emuenv) {
         gui.vita_area.manual = false;
 
         // Free manual textures from memory when manual is closed
-        for (auto &manual : gui.manuals)
-            manual = {};
         gui.manuals.clear();
     } else if (gui.vita_area.settings) {
         gui.vita_area.settings = false;

@@ -31,7 +31,6 @@
 #include <util/string_utils.h>
 
 #include <pugixml.hpp>
-#include <stb_image.h>
 #include <util/vector_utils.h>
 
 #undef ERROR
@@ -165,8 +164,6 @@ static void get_themes_list(GuiState &gui, EmuEnvState &emuenv) {
     for (const auto &[content_id, theme] : themes_info) {
         for (const auto &[preview_type, theme_name] : theme_preview_name[content_id]) {
             if (!theme_name.empty()) {
-                int32_t width = 0;
-                int32_t height = 0;
                 vfs::FileBuffer buffer;
 
                 if (content_id == "default")
@@ -178,14 +175,8 @@ static void get_themes_list(GuiState &gui, EmuEnvState &emuenv) {
                     LOG_WARN("Background, Name: '{}', Not found for title: {} [{}].", theme_name, content_id, theme.title);
                     continue;
                 }
-                stbi_uc *data = stbi_load_from_memory(&buffer[0], static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-                if (!data) {
-                    LOG_ERROR("Invalid Background for title: {} [{}].", content_id, theme.title);
-                    continue;
-                }
 
-                gui.themes_preview[content_id][preview_type].init(gui.imgui_state.get(), data, width, height);
-                stbi_image_free(data);
+                gui.themes_preview[content_id][preview_type].loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
             }
         }
     }
@@ -656,7 +647,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                     std::filesystem::path image_path = "";
                     host::dialog::filesystem::Result result = host::dialog::filesystem::open_file(image_path, { { "Image file", { "bmp", "gif", "jpg", "png", "tif" } } });
 
-                    if ((result == host::dialog::filesystem::Result::SUCCESS) && init_user_start_background(gui, fs_utils::path_to_utf8(image_path.native()))) {
+                    if ((result == host::dialog::filesystem::Result::SUCCESS) && init_user_start_background(gui, emuenv, fs_utils::path_to_utf8(image_path.native()))) {
                         gui.users[emuenv.io.user_id].start_path = fs_utils::path_to_utf8(image_path.native());
                         gui.users[emuenv.io.user_id].start_type = "image";
                         save_user(gui, emuenv, emuenv.io.user_id);

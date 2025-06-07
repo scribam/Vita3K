@@ -87,7 +87,7 @@ void init_user_apps(GuiState &gui, EmuEnvState &emuenv);
 bool init_user_background(GuiState &gui, EmuEnvState &emuenv, const std::string &background_path);
 bool init_user_backgrounds(GuiState &gui, EmuEnvState &emuenv);
 void init_user_management(GuiState &gui, EmuEnvState &emuenv);
-bool init_user_start_background(GuiState &gui, const std::string &image_path);
+bool init_user_start_background(GuiState &gui, EmuEnvState &emuenv, const std::string &image_path);
 void load_and_update_compat_user_apps(GuiState &gui, EmuEnvState &emuenv);
 void open_live_area(GuiState &gui, EmuEnvState &emuenv, const std::string &app_path);
 void open_manual(GuiState &gui, EmuEnvState &emuenv, const std::string &app_path);
@@ -113,7 +113,7 @@ void update_time_app_used(GuiState &gui, EmuEnvState &emuenv, const std::string 
 void save_notice_list(EmuEnvState &emuenv);
 
 void draw_begin(GuiState &gui, EmuEnvState &emuenv);
-void draw_end(GuiState &gui);
+void draw_end(GuiState &gui, EmuEnvState &emuenv);
 void draw_vita_area(GuiState &gui, EmuEnvState &emuenv);
 void draw_ui(GuiState &gui, EmuEnvState &emuenv);
 
@@ -129,7 +129,5 @@ void draw_shaders_count_compiled(GuiState &gui, EmuEnvState &emuenv);
 void draw_trophies_unlocked(GuiState &gui, EmuEnvState &emuenv);
 void draw_touchpad_cursor(EmuEnvState &emuenv);
 void draw_perf_overlay(GuiState &gui, EmuEnvState &emuenv);
-
-ImTextureID load_image(GuiState &gui, const uint8_t *data, const int size);
 
 } // namespace gui

@@ -32,7 +32,6 @@
 #include <util/vector_utils.h>
 
 #include <pugixml.hpp>
-#include <stb_image.h>
 
 #undef ERROR
 
@@ -56,28 +55,18 @@ struct AvatarInfo {
 static std::map<std::string, std::map<AvatarSize, AvatarInfo>> users_avatar_infos;
 static bool init_avatar(GuiState &gui, EmuEnvState &emuenv, const std::string &user_id, const std::string &avatar_path) {
     const auto avatar_path_path = avatar_path == "default" ? emuenv.static_assets_path / "data/image/icon.png" : fs_utils::utf8_to_path(avatar_path);
-
     if (!fs::exists(avatar_path_path)) {
         LOG_WARN("Avatar image doesn't exist: {}.", avatar_path_path);
         return false;
     }
 
-    int32_t width = 0;
-    int32_t height = 0;
-
     FILE *f = FOPEN(avatar_path_path.c_str(), "rb");
-
-    stbi_uc *data = stbi_load_from_file(f, &width, &height, nullptr, STBI_rgb_alpha);
-
-    if (!data) {
-        LOG_ERROR("Invalid or corrupted image: {}.", avatar_path_path);
-        return false;
-    }
-
     gui.users_avatar[user_id] = {};
-    gui.users_avatar[user_id].init(gui.imgui_state.get(), data, width, height);
-    stbi_image_free(data);
+    gui.users_avatar[user_id].loadTextureFromFile(emuenv.renderer.get(), f);
     fclose(f);
+
+    int32_t width = gui.users_avatar[user_id].width;
+    int32_t height = gui.users_avatar[user_id].height;
 
     // Calculate avatar size and position based of aspect ratio
     // Resize for all size of avatar
@@ -90,7 +79,7 @@ static bool init_avatar(GuiState &gui, EmuEnvState &emuenv, const std::string &u
         avatar.pos = ImVec2((avatar_size.x / 2.f) - (avatar.size.x / 2.f), (avatar_size.y / 2.f) - (avatar.size.y / 2.f));
     }
 
-    return gui.users_avatar.contains(user_id);
+    return true;
 }
 
 void get_users_list(GuiState &gui, EmuEnvState &emuenv) {
@@ -230,7 +219,7 @@ void open_user(GuiState &gui, EmuEnvState &emuenv) {
     gui.vita_area.user_management = false;
 
     if (gui.users[emuenv.io.user_id].start_type == "image")
-        init_user_start_background(gui, gui.users[emuenv.io.user_id].start_path);
+        init_user_start_background(gui, emuenv, gui.users[emuenv.io.user_id].start_path);
     else
         init_theme_start_background(gui, emuenv, gui.users[emuenv.io.user_id].theme_id);
 
@@ -287,7 +276,6 @@ static void create_temp_user(GuiState &gui, EmuEnvState &emuenv) {
 
 static void clear_user_temp(GuiState &gui) {
     temp = {};
-    gui.users_avatar["temp"] = {};
     gui.users_avatar.erase("temp");
     user_id_selected.clear();
 }

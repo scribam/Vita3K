@@ -33,7 +33,6 @@
 #include <pugixml.hpp>
 
 #include <SDL_power.h>
-#include <stb_image.h>
 
 namespace gui {
 
@@ -91,8 +90,6 @@ void erase_app_notice(GuiState &gui, const std::string &title_id) {
 
 static bool init_notice_icon(GuiState &gui, EmuEnvState &emuenv, const fs::path &content_path, const NoticeList &info) {
     gui.notice_info_icon[info.time] = {};
-    int32_t width = 0;
-    int32_t height = 0;
     vfs::FileBuffer buffer;
 
     if (!vfs::read_file(VitaIoDevice::ux0, buffer, emuenv.pref_path, content_path)) {
@@ -109,15 +106,10 @@ static bool init_notice_icon(GuiState &gui, EmuEnvState &emuenv, const fs::path 
             }
         }
     }
-    stbi_uc *data = stbi_load_from_memory(&buffer[0], static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-    if (!data) {
-        LOG_ERROR("Invalid icon for notice id: {} in path {}.", info.id, content_path);
-        return false;
-    }
-    gui.notice_info_icon[info.time].init(gui.imgui_state.get(), data, width, height);
-    stbi_image_free(data);
 
-    return gui.notice_info_icon.contains(info.time);
+    gui.notice_info_icon[info.time].loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
+
+    return true;
 }
 
 static bool set_notice_info(GuiState &gui, EmuEnvState &emuenv, const NoticeList &info) {
@@ -513,8 +505,6 @@ static void draw_notice_info(GuiState &gui, EmuEnvState &emuenv) {
                     ImGui::SameLine(0.f, 20.f);
                     if (ImGui::Button(common["ok"].c_str(), BUTTON_SIZE) || ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_cross))) {
                         notice_info.clear();
-                        for (auto &notice : gui.notice_info_icon)
-                            notice.second = {};
                         gui.notice_info_icon.clear();
                         notice_list["global"].clear();
                         notice_list[emuenv.io.user_id].clear();

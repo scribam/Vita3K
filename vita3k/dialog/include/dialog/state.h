@@ -18,9 +18,8 @@
 #pragma once
 
 #include <dialog/types.h>
-
+#include <gui/imgui_impl_sdl_state.h>
 #include <io/vfs.h>
-
 #include <lang/state.h>
 
 enum DialogType {
@@ -64,7 +63,7 @@ struct SavedataState {
     uint32_t button_id = SCE_SAVEDATA_DIALOG_BUTTON_ID_INVALID;
 
     std::vector<vfs::FileBuffer> icon_buffer;
-    std::vector<ImTextureID> icon_texture;
+    std::vector<ImGui_Texture> icon_texture;
 
     uint32_t mode;
     uint32_t mode_to_display;

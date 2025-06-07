@@ -19,52 +19,41 @@
 
 #include <imgui.h>
 
-#include <cstdint>
-
-struct SDL_Window;
-struct SDL_Cursor;
+#include <cstdio>
+#include <memory>
 
 namespace renderer {
 struct State;
 }
 
-struct ImGui_State {
-    SDL_Window *window{};
-    renderer::State *renderer{};
-
-    uint64_t time = 0;
-    int mouse_buttons_down = 0;
-    SDL_Cursor *mouse_cursors[ImGuiMouseCursor_COUNT] = {};
-    int pending_mouse_leave_frame = 0;
-    bool mouse_can_use_global_state = false;
-
-    bool init = false;
-    bool is_typing = false;
-    bool do_clear_screen = true;
-
-    ImGui_State() = default;
-
-    virtual ~ImGui_State() = default;
+struct ImguiTextureData
+{
+    virtual ~ImguiTextureData() = default;
+    virtual ImTextureID GetImTextureID() const = 0;
 };
 
 class ImGui_Texture {
-    ImGui_State *state = nullptr;
-    ImTextureID texture_id = nullptr;
+    std::unique_ptr<ImguiTextureData> texture;
+    bool loadTexture(renderer::State *state, unsigned char *data, int height, int width);
 
 public:
+    int height = 0;
+    int width = 0;
+
     ImGui_Texture() = default;
-    ImGui_Texture(ImGui_State *new_state, void *data, int width, int height);
+    ImGui_Texture(renderer::State *state, FILE *f);
+    ImGui_Texture(renderer::State *state, unsigned char const *buffer, int len);
     ImGui_Texture(ImGui_Texture &&texture) noexcept;
 
-    void init(ImGui_State *new_state, ImTextureID texture);
-    void init(ImGui_State *new_state, void *data, int width, int height);
+    bool loadTextureFromFile(renderer::State *state, FILE *f);
+    bool loadTextureFromMemory(renderer::State *state, unsigned char const *buffer, int len);
 
     operator bool() const;
     operator ImTextureID() const;
-    bool operator==(const ImGui_Texture &texture);
+    bool operator==(const ImGui_Texture &texture) const;
 
     ImGui_Texture &operator=(ImGui_Texture &&texture) noexcept;
     ImGui_Texture &operator=(const ImGui_Texture &texture) = delete;
 
-    ~ImGui_Texture();
+    ~ImGui_Texture() = default;
 };

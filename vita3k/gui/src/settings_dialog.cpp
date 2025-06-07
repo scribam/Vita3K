@@ -1046,7 +1046,6 @@ void draw_settings_dialog(GuiState &gui, EmuEnvState &emuenv) {
         if (!gui.user_backgrounds.empty()) {
             ImGui::Spacing();
             if (ImGui::Button(lang.gui["clean_user_backgrounds"].c_str())) {
-                gui.user_backgrounds[gui.users[emuenv.io.user_id].backgrounds[gui.current_user_bg]] = {};
                 gui.user_backgrounds.clear();
                 if (!gui.theme_backgrounds.empty())
                     gui.users[emuenv.io.user_id].use_theme_bg = true;

@@ -29,7 +29,6 @@
 #include <io/functions.h>
 
 #include <pugixml.hpp>
-#include <stb_image.h>
 
 namespace gui {
 using namespace np::trophy;
@@ -241,8 +240,6 @@ void init_trophy_collection(GuiState &gui, EmuEnvState &emuenv) {
                 np_com_id_list.push_back({ np_com_id, np_com_id_info[np_com_id].name["000"], progress, updated });
 
                 for (const auto &group : np_com_list_name_icons) {
-                    int32_t width = 0;
-                    int32_t height = 0;
                     vfs::FileBuffer buffer;
 
                     vfs::read_file(VitaIoDevice::ux0, buffer, emuenv.pref_path, "user/" + emuenv.io.user_id + "/trophy/conf/" + np_com_id + "/" + group.second);
@@ -252,14 +249,7 @@ void init_trophy_collection(GuiState &gui, EmuEnvState &emuenv) {
                         continue;
                     }
 
-                    stbi_uc *data = stbi_load_from_memory(&buffer[0], static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-                    if (!data) {
-                        LOG_ERROR("Invalid icon: '{}' for NPComId: {}.", group.second, np_com_id);
-                        continue;
-                    }
-
-                    gui.trophy_np_com_id_list_icons[np_com_id][group.first].init(gui.imgui_state.get(), data, width, height);
-                    stbi_image_free(data);
+                    gui.trophy_np_com_id_list_icons[np_com_id][group.first].loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
                 }
             }
         }
@@ -330,8 +320,6 @@ static void get_trophy_list(GuiState &gui, EmuEnvState &emuenv, const std::strin
     }
 
     for (const auto &[trophy_id, _] : trophy_info) {
-        int32_t width = 0;
-        int32_t height = 0;
         vfs::FileBuffer buffer;
         const std::string icon_name = fmt::format("TROP{}.PNG", trophy_id);
 
@@ -340,14 +328,8 @@ static void get_trophy_list(GuiState &gui, EmuEnvState &emuenv, const std::strin
             LOG_WARN("Trophy icon, Name: '{}', Not found for trophy id: {}.", icon_name, trophy_id);
             continue;
         }
-        stbi_uc *data = stbi_load_from_memory(&buffer[0], static_cast<int>(buffer.size()), &width, &height, nullptr, STBI_rgb_alpha);
-        if (!data) {
-            LOG_ERROR("Invalid trophy icon for trophy id {} [{}].", icon_name, trophy_id);
-            continue;
-        }
 
-        gui.trophy_list[trophy_id].init(gui.imgui_state.get(), data, width, height);
-        stbi_image_free(data);
+        gui.trophy_list[trophy_id].loadTextureFromMemory(emuenv.renderer.get(), buffer.data(), static_cast<int>(buffer.size()));
 
         auto &common = gui.lang.common.main;
         const auto trophy_type = np_com_id_info[np_com_id].context.trophy_kinds[string_utils::stoi_def(trophy_id, 0, "trophy id")];
@@ -525,7 +507,6 @@ void draw_trophy_collection(GuiState &gui, EmuEnvState &emuenv) {
                     });
                     np_com_id_list.erase(np_com_id_index);
                     np_com_id_info.erase(delete_np_com_id);
-                    gui.trophy_np_com_id_list_icons[delete_np_com_id]["000"] = {};
                     gui.trophy_np_com_id_list_icons.erase(delete_np_com_id);
                     delete_np_com_id.clear();
                 }

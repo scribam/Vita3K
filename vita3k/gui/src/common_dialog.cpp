@@ -321,11 +321,14 @@ void browse_save_data_dialog(GuiState &gui, EmuEnvState &emuenv, const uint32_t 
     }
 }
 
-static ImTextureID check_and_init_icon_texture(GuiState &gui, EmuEnvState &emuenv, const uint32_t index) {
+static ImTextureID check_and_init_icon_texture(EmuEnvState &emuenv, const uint32_t index) {
     auto &icon_texture = emuenv.common_dialog.savedata.icon_texture[index];
     if (!icon_texture && !emuenv.common_dialog.savedata.icon_buffer[index].empty()) {
-        icon_texture = load_image(gui, emuenv.common_dialog.savedata.icon_buffer[index].data(),
-            static_cast<int>(emuenv.common_dialog.savedata.icon_buffer[index].size()));
+        icon_texture.loadTextureFromMemory(
+            emuenv.renderer.get(),
+            emuenv.common_dialog.savedata.icon_buffer[index].data(),
+            static_cast<int>(emuenv.common_dialog.savedata.icon_buffer[index].size())
+        );
     }
 
     return icon_texture;
@@ -436,7 +439,7 @@ static void draw_savedata_dialog_list(GuiState &gui, EmuEnvState &emuenv, float 
     ImGui::EndGroup();
     ImGui::SetWindowFontScale(1.2f * FONT_SCALE);
     const ImVec2 THUMBNAIL_POS(150.f * SCALE.x, save_pos.y);
-    const auto icon_texture = check_and_init_icon_texture(gui, emuenv, loop_index);
+    const auto icon_texture = check_and_init_icon_texture(emuenv, loop_index);
     if (icon_texture) {
         ImGui::SetCursorPos(THUMBNAIL_POS);
         ImGui::Image(icon_texture, THUMBNAIL_SIZE);
@@ -548,7 +551,7 @@ static void draw_savedata_dialog(GuiState &gui, EmuEnvState &emuenv, float FONT_
         const ImVec2 ICON_POS(48 * SCALE.x, 34 * SCALE.y);
 
         // Draw the save data icon
-        const auto icon_texture = check_and_init_icon_texture(gui, emuenv, emuenv.common_dialog.savedata.selected_save);
+        const auto icon_texture = check_and_init_icon_texture(emuenv, emuenv.common_dialog.savedata.selected_save);
         if (icon_texture) {
             ImGui::SetCursorPos(ImVec2(48 * SCALE.x, 34 * SCALE.y));
             ImGui::Image(icon_texture, THUMBNAIL_SIZE);

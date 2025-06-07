@@ -22,7 +22,7 @@
 struct Config;
 struct EmuEnvState;
 struct SDL_Window;
-struct ImGui_State;
+struct GuiState;
 class Root;
 
 namespace app {
@@ -38,7 +38,7 @@ enum class AppRunType {
 void init_paths(Root &root_paths);
 bool init(EmuEnvState &state, Config &cfg, const Root &root_paths);
 bool late_init(EmuEnvState &state);
-void destroy(EmuEnvState &emuenv, ImGui_State *imgui);
+void destroy(EmuEnvState &emuenv, GuiState &gui);
 void update_viewport(EmuEnvState &state);
 void switch_state(EmuEnvState &emuenv, const bool pause);
 void error_dialog(const std::string &message, SDL_Window *window = nullptr);
