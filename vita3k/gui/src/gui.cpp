@@ -724,6 +724,7 @@ void pre_init(GuiState &gui, EmuEnvState &emuenv) {
 
         ImGui_ImplSDL2_InitForVulkan(emuenv.window.get());
         ImGui_ImplVulkan_InitInfo init_info = {};
+        init_info.ApiVersion = VK_API_VERSION_1_0;
         init_info.Instance = vk_state.instance;
         init_info.PhysicalDevice = vk_state.physical_device;
         init_info.Device = vk_state.device;
@@ -746,7 +747,7 @@ void pre_init(GuiState &gui, EmuEnvState &emuenv) {
         };
 
 #if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
-        ImGui_ImplVulkan_LoadFunctions([](const char *function, void *user_data) {
+        ImGui_ImplVulkan_LoadFunctions(VK_API_VERSION_1_0, [](const char *function, void *user_data) {
             return VULKAN_HPP_DEFAULT_DISPATCHER.vkGetInstanceProcAddr((VkInstance)user_data, function);
         }, init_info.Instance);
 #endif
