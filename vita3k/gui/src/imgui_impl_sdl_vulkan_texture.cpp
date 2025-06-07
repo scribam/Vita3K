@@ -20,8 +20,6 @@
 
 #include <imgui_impl_vulkan.h>
 
-VkDescriptorPool imgui_descriptor_pool;
-
 // Helper function to find Vulkan memory type bits. See ImGui_ImplVulkan_MemoryType() in imgui_impl_vulkan.cpp
 uint32_t findMemoryType(vk::PhysicalDevice physicalDevice, uint32_t type_filter, vk::MemoryPropertyFlags properties) {
     vk::PhysicalDeviceMemoryProperties mem_properties = physicalDevice.getMemoryProperties();
