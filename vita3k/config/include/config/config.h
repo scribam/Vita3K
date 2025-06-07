@@ -112,34 +112,34 @@ enum ScreenshotFormat {
     code(int, "performance-overlay-position", static_cast<int>(TOP_LEFT), performance_overlay_position) \
     code(int, "screenshot-format", static_cast<int>(JPEG), screenshot_format)                           \
     code(bool, "disable-motion", false, disable_motion)                                                 \
-    code(int, "keyboard-button-select", 229, keyboard_button_select)                                    \
-    code(int, "keyboard-button-start", 40, keyboard_button_start)                                       \
-    code(int, "keyboard-button-up", 82, keyboard_button_up)                                             \
-    code(int, "keyboard-button-right", 79, keyboard_button_right)                                       \
-    code(int, "keyboard-button-down", 81, keyboard_button_down)                                         \
-    code(int, "keyboard-button-left", 80, keyboard_button_left)                                         \
-    code(int, "keyboard-button-l1", 20, keyboard_button_l1)                                             \
-    code(int, "keyboard-button-r1", 8, keyboard_button_r1)                                              \
-    code(int, "keyboard-button-l2", 24, keyboard_button_l2)                                             \
-    code(int, "keyboard-button-r2", 18, keyboard_button_r2)                                             \
-    code(int, "keyboard-button-l3", 9, keyboard_button_l3)                                              \
-    code(int, "keyboard-button-r3", 11, keyboard_button_r3)                                             \
-    code(int, "keyboard-button-triangle", 25, keyboard_button_triangle)                                 \
-    code(int, "keyboard-button-circle", 6, keyboard_button_circle)                                      \
-    code(int, "keyboard-button-cross", 27, keyboard_button_cross)                                       \
-    code(int, "keyboard-button-square", 29, keyboard_button_square)                                     \
-    code(int, "keyboard-leftstick-left", 4, keyboard_leftstick_left)                                    \
-    code(int, "keyboard-leftstick-right", 7, keyboard_leftstick_right)                                  \
-    code(int, "keyboard-leftstick-up", 26, keyboard_leftstick_up)                                       \
-    code(int, "keyboard-leftstick-down", 22, keyboard_leftstick_down)                                   \
-    code(int, "keyboard-rightstick-left", 13, keyboard_rightstick_left)                                 \
-    code(int, "keyboard-rightstick-right", 15, keyboard_rightstick_right)                               \
-    code(int, "keyboard-rightstick-up", 12, keyboard_rightstick_up)                                     \
-    code(int, "keyboard-rightstick-down", 14, keyboard_rightstick_down)                                 \
-    code(int, "keyboard-button-psbutton", 19, keyboard_button_psbutton)                                 \
-    code(int, "keyboard-gui-toggle-gui", 10, keyboard_gui_toggle_gui)                                   \
-    code(int, "keyboard-gui-fullscreen", 68, keyboard_gui_fullscreen)                                   \
-    code(int, "keyboard-gui-toggle-touch", 23, keyboard_gui_toggle_touch)                               \
+    code(int, "keyboard-button-select", 532, keyboard_button_select) /* ImGuiKey_RightShift */          \
+    code(int, "keyboard-button-start", 525, keyboard_button_start) /* ImGuiKey_Enter */                 \
+    code(int, "keyboard-button-up", 515, keyboard_button_up) /* ImGuiKey_UpArrow */                     \
+    code(int, "keyboard-button-right", 514, keyboard_button_right) /* ImGuiKey_RightArrow */            \
+    code(int, "keyboard-button-down", 516, keyboard_button_down) /* ImGuiKey_DownArrow */               \
+    code(int, "keyboard-button-left", 513, keyboard_button_left) /* ImGuiKey_LeftArrow */               \
+    code(int, "keyboard-button-l1", 562, keyboard_button_l1) /* ImGuiKey_Q */                           \
+    code(int, "keyboard-button-r1", 550, keyboard_button_r1) /* ImGuiKey_E */                           \
+    code(int, "keyboard-button-l2", 566, keyboard_button_l2) /* ImGuiKey_U */                           \
+    code(int, "keyboard-button-r2", 560, keyboard_button_r2) /* ImGuiKey_O */                           \
+    code(int, "keyboard-button-l3", 551, keyboard_button_l3) /* ImGuiKey_F */                           \
+    code(int, "keyboard-button-r3", 553, keyboard_button_r3) /* ImGuiKey_H */                           \
+    code(int, "keyboard-button-triangle", 567, keyboard_button_triangle) /* ImGuiKey_V */               \
+    code(int, "keyboard-button-circle", 548, keyboard_button_circle) /* ImGuiKey_C */                   \
+    code(int, "keyboard-button-cross", 569, keyboard_button_cross) /* ImGuiKey_X */                     \
+    code(int, "keyboard-button-square", 571, keyboard_button_square) /* ImGuiKey_Z */                   \
+    code(int, "keyboard-leftstick-left", 546, keyboard_leftstick_left) /* ImGuiKey_A */                 \
+    code(int, "keyboard-leftstick-right", 549, keyboard_leftstick_right) /* ImGuiKey_D */               \
+    code(int, "keyboard-leftstick-up", 568, keyboard_leftstick_up) /* ImGuiKey_W */                     \
+    code(int, "keyboard-leftstick-down", 564, keyboard_leftstick_down) /* ImGuiKey_S */                 \
+    code(int, "keyboard-rightstick-left", 555, keyboard_rightstick_left) /* ImGuiKey_J */               \
+    code(int, "keyboard-rightstick-right", 557, keyboard_rightstick_right) /* ImGuiKey_L */             \
+    code(int, "keyboard-rightstick-up", 554, keyboard_rightstick_up) /* ImGuiKey_I */                   \
+    code(int, "keyboard-rightstick-down", 556, keyboard_rightstick_down) /* ImGuiKey_K */               \
+    code(int, "keyboard-button-psbutton", 561, keyboard_button_psbutton) /* ImGuiKey_P */               \
+    code(int, "keyboard-gui-toggle-gui", 552, keyboard_gui_toggle_gui) /* ImGuiKey_G */                 \
+    code(int, "keyboard-gui-fullscreen", 582, keyboard_gui_fullscreen) /* ImGuiKey_F11 */               \
+    code(int, "keyboard-gui-toggle-touch", 565, keyboard_gui_toggle_touch) /* ImGuiKey_T */             \
     code(int, "keyboard-toggle-texture-replacement", 0, keyboard_toggle_texture_replacement)            \
     code(int, "keyboard-take-screenshot", 0, keyboard_take_screenshot)                                  \
     code(std::string, "user-id", std::string{}, user_id)                                                \
