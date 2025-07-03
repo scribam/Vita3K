@@ -259,11 +259,11 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
     const auto draw_list = ImGui::GetBackgroundDrawList();
     const ImVec2 BG_POS_MAX(VIEWPORT_POS.x + VIEWPORT_SIZE.x, VIEWPORT_POS.y + VIEWPORT_SIZE.y);
     if (is_background)
-        draw_list->AddImage(gui.apps_background["NPXS10015"], VIEWPORT_POS, BG_POS_MAX);
+        draw_list->AddImage(ImTextureRef(gui.apps_background["NPXS10015"]), VIEWPORT_POS, BG_POS_MAX);
     else
         draw_list->AddRectFilled(VIEWPORT_POS, BG_POS_MAX, IM_COL32(36.f, 120.f, 12.f, 255.f), 0.f, ImDrawFlags_RoundCornersAll);
 
-    ImGui::SetWindowFontScale(1.6f * RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.6f * RES_SCALE.x);
     const auto title_size_str = ImGui::CalcTextSize(title.c_str(), 0, false, SIZE_LIST.x);
     ImGui::PushTextWrapPos(((WINDOW_SIZE.x - SIZE_LIST.x) / 2.f) + SIZE_LIST.x);
     ImGui::SetCursorPos(ImVec2((WINDOW_SIZE.x / 2.f) - (title_size_str.x / 2.f), (35.f * SCALE.y) - (title_size_str.y / 2.f)));
@@ -279,13 +279,13 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
     if (settings_menu == SettingsMenu::THEME_BACKGROUND) {
         // Search Bar
         if ((menu == Menu::THEME) && selected.empty()) {
-            ImGui::SetWindowFontScale(1.2f * RES_SCALE.x);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f * RES_SCALE.x);
             const auto search_size = ImGui::CalcTextSize(common["search"].c_str());
             ImGui::SetCursorPos(ImVec2(WINDOW_SIZE.x - (220.f * SCALE.x) - search_size.x, (35.f * SCALE.y) - (search_size.y / 2.f)));
             ImGui::TextColored(GUI_COLOR_TEXT, "%s", common["search"].c_str());
             ImGui::SameLine();
             search_bar.Draw("##search_bar", 200 * SCALE.x);
-            ImGui::SetWindowFontScale(1.6f * RES_SCALE.x);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.6f * RES_SCALE.x);
 
             // Draw Scroll Arrow
             const auto ARROW_SIZE = ImVec2(50.f * SCALE.x, 60.f * SCALE.y);
@@ -339,7 +339,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
     switch (settings_menu) {
     case SettingsMenu::SELECT:
         title = lang.main["title"];
-        ImGui::SetWindowFontScale(1.2f);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f);
         ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.f, 0.5f));
         if (ImGui::Selectable(theme_background.main["title"].c_str(), false, ImGuiSelectableFlags_None, ImVec2(0.f, SIZE_SELECT))) {
             get_themes_list(gui, emuenv);
@@ -362,21 +362,21 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
             title = theme_background.main["title"];
             ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.f, 0.5f));
             if (!themes_info.empty()) {
-                ImGui::SetWindowFontScale(0.74f);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.74f);
                 const auto CALC_TITLE = ImGui::CalcTextSize(themes_info[gui.users[emuenv.io.user_id].theme_id].title.c_str(), 0, false, 230.f * SCALE.x).y;
                 const auto PAD_MARGIN = 40.f * SCALE.y;
                 const auto THEME_SELECT_SIZE = CALC_TITLE + PAD_MARGIN > SIZE_SELECT ? CALC_TITLE + PAD_MARGIN : SIZE_SELECT;
-                ImGui::SetWindowFontScale(1.2f);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f);
                 if (ImGui::Selectable(theme_background.theme.main["title"].c_str(), false, ImGuiSelectableFlags_None, ImVec2(0.f, THEME_SELECT_SIZE)))
                     menu = Menu::THEME;
-                ImGui::SetWindowFontScale(0.74f);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.74f);
                 ImGui::SameLine(0, 420.f * SCALE.x);
                 const auto CALC_POS_TITLE = (THEME_SELECT_SIZE / 2.f) - (CALC_TITLE / 2.f);
                 ImGui::SetCursorPosY(CALC_POS_TITLE);
                 ImGui::TextWrapped("%s", themes_info[gui.users[emuenv.io.user_id].theme_id].title.c_str());
                 ImGui::Separator();
             }
-            ImGui::SetWindowFontScale(1.2f);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f);
             if (ImGui::Selectable(theme_background.start_screen["title"].c_str(), false, ImGuiSelectableFlags_None, ImVec2(0.f, 80.f * SCALE.y)))
                 menu = Menu::START;
             ImGui::Separator();
@@ -416,15 +416,15 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                         continue;
                     const auto POS_IMAGE = ImGui::GetCursorPosY();
                     if (gui.themes_preview[theme.first].contains(PACKAGE))
-                        ImGui::Image(gui.themes_preview[theme.first][PACKAGE], SIZE_PACKAGE);
+                        ImGui::Image(ImTextureRef(gui.themes_preview[theme.first][PACKAGE]), SIZE_PACKAGE);
                     ImGui::SetCursorPosY(POS_IMAGE);
                     ImGui::PushID(theme.first.c_str());
                     ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
                     ImGui::PushStyleColor(ImGuiCol_Text, GUI_COLOR_TEXT_TITLE);
-                    ImGui::SetWindowFontScale(1.8f);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.8f);
                     if (ImGui::Selectable(gui.users[emuenv.io.user_id].theme_id == theme.first ? "V" : "##preview", false, ImGuiSelectableFlags_None, SIZE_PACKAGE))
                         selected = theme.first;
-                    ImGui::SetWindowFontScale(0.6f);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.6f);
                     ImGui::PopStyleColor();
                     ImGui::PopStyleVar();
                     ImGui::PopID();
@@ -447,13 +447,13 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                 case Popup::UNDEFINED: {
                     if (gui.themes_preview[selected].contains(HOME)) {
                         ImGui::SetCursorPos(ImVec2(15.f * SCALE.x, (SIZE_LIST.y / 2.f) - (SIZE_PREVIEW.y / 2.f) - (72.f * SCALE.y)));
-                        ImGui::Image(gui.themes_preview[selected][HOME], SIZE_PREVIEW);
+                        ImGui::Image(ImTextureRef(gui.themes_preview[selected][HOME]), SIZE_PREVIEW);
                     }
                     if (gui.themes_preview[selected].contains(LOCK)) {
                         ImGui::SetCursorPos(ImVec2((SIZE_LIST.x / 2.f) + (15.f * SCALE.y), (SIZE_LIST.y / 2.f) - (SIZE_PREVIEW.y / 2.f) - (72.f * SCALE.y)));
-                        ImGui::Image(gui.themes_preview[selected][LOCK], SIZE_PREVIEW);
+                        ImGui::Image(ImTextureRef(gui.themes_preview[selected][LOCK]), SIZE_PREVIEW);
                     }
-                    ImGui::SetWindowFontScale(1.2f);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f);
                     ImGui::SetCursorPos(ImVec2((SIZE_LIST.x / 2.f) - (BUTTON_SIZE.x / 2.f), (SIZE_LIST.y - 82.f) - BUTTON_SIZE.y));
                     if ((selected != gui.users[emuenv.io.user_id].theme_id) && (ImGui::Button(select, BUTTON_SIZE) || ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_cross)))) {
                         gui.users[emuenv.io.user_id].start_path.clear();
@@ -478,8 +478,8 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 10.f * SCALE.x);
                     ImGui::BeginChild("##delete_theme_popup", POPUP_SIZE, ImGuiChildFlags_Borders, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
                     ImGui::SetCursorPos(ImVec2(48.f * SCALE.x, 28.f * SCALE.y));
-                    ImGui::SetWindowFontScale(1.6f * RES_SCALE.x);
-                    ImGui::Image(gui.themes_preview[selected][PACKAGE], SIZE_MINI_PACKAGE);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.6f * RES_SCALE.x);
+                    ImGui::Image(ImTextureRef(gui.themes_preview[selected][PACKAGE]), SIZE_MINI_PACKAGE);
                     ImGui::SameLine(0, 22.f * SCALE.x);
                     const auto CALC_TITLE = ImGui::CalcTextSize(themes_info[selected].title.c_str(), nullptr, false, POPUP_SIZE.x - SIZE_MINI_PACKAGE.x - (70.f * SCALE.x)).y / 2.f;
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (SIZE_MINI_PACKAGE.y / 2.f) - CALC_TITLE);
@@ -518,15 +518,15 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                 case Popup::INFORMATION: {
                     if (gui.themes_preview[selected].contains(HOME)) {
                         ImGui::SetCursorPos(ImVec2(119.f * SCALE.x, 4.f * SCALE.y));
-                        ImGui::Image(gui.themes_preview[selected][HOME], SIZE_MINI_PREVIEW);
+                        ImGui::Image(ImTextureRef(gui.themes_preview[selected][HOME]), SIZE_MINI_PREVIEW);
                     }
                     if (gui.themes_preview[selected].contains(LOCK)) {
                         ImGui::SetCursorPos(ImVec2(SIZE_LIST.x / 2.f + (15.f * SCALE.y), 4.f * SCALE.y));
-                        ImGui::Image(gui.themes_preview[selected][LOCK], SIZE_MINI_PREVIEW);
+                        ImGui::Image(ImTextureRef(gui.themes_preview[selected][LOCK]), SIZE_MINI_PREVIEW);
                     }
                     const auto INFO_POS = ImVec2(280.f * SCALE.x, 30.f * SCALE.y);
                     auto &info = theme.information;
-                    ImGui::SetWindowFontScale(0.94f);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.94f);
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + INFO_POS.y);
                     ImGui::TextColored(GUI_COLOR_TEXT, "%s", info["name"].c_str());
                     ImGui::SameLine();
@@ -573,7 +573,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
         case Menu::START: {
             if (sub_menu == SubMenu::UNDEFINED) {
                 title = theme_background.start_screen["title"];
-                ImGui::SetWindowFontScale(0.72f);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.72f);
                 ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
                 const auto PACKAGE_POS_Y = (SIZE_LIST.y / 2.f) - (SIZE_PACKAGE.y / 2.f) - (72.f * SCALE.y);
                 const auto is_not_default = gui.users[emuenv.io.user_id].theme_id != "default";
@@ -581,15 +581,15 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                     const auto THEME_POS = ImVec2(15.f * SCALE.x, PACKAGE_POS_Y);
                     if (gui.themes_preview[gui.users[emuenv.io.user_id].theme_id].contains(PACKAGE)) {
                         ImGui::SetCursorPos(THEME_POS);
-                        ImGui::Image(gui.themes_preview[gui.users[emuenv.io.user_id].theme_id][PACKAGE], SIZE_PACKAGE);
+                        ImGui::Image(ImTextureRef(gui.themes_preview[gui.users[emuenv.io.user_id].theme_id][PACKAGE]), SIZE_PACKAGE);
                     }
                     ImGui::SetCursorPos(THEME_POS);
-                    ImGui::SetWindowFontScale(1.8f);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.8f);
                     ImGui::PushStyleColor(ImGuiCol_Text, GUI_COLOR_TEXT_TITLE);
                     if (ImGui::Selectable(gui.users[emuenv.io.user_id].start_type == "theme" ? "V" : "##theme", false, ImGuiSelectableFlags_None, SIZE_PACKAGE))
                         sub_menu = SubMenu::THEME;
                     ImGui::PopStyleColor();
-                    ImGui::SetWindowFontScale(0.72f);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.72f);
                     ImGui::SetCursorPosX(15.f * SCALE.x);
                     ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + SIZE_PACKAGE.x);
                     ImGui::TextColored(GUI_COLOR_TEXT, "%s", themes_info[gui.users[emuenv.io.user_id].theme_id].title.c_str());
@@ -598,34 +598,34 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                 const auto IMAGE_POS = ImVec2(is_not_default ? (SIZE_LIST.x / 2.f) - (SIZE_PACKAGE.x / 2.f) : 15.f * SCALE.x, PACKAGE_POS_Y);
                 if ((gui.users[emuenv.io.user_id].start_type == "image") && gui.start_background) {
                     ImGui::SetCursorPos(IMAGE_POS);
-                    ImGui::Image(gui.start_background, SIZE_PACKAGE);
+                    ImGui::Image(ImTextureRef(gui.start_background), SIZE_PACKAGE);
                 }
                 ImGui::SetCursorPos(IMAGE_POS);
                 if (gui.users[emuenv.io.user_id].start_type == "image")
-                    ImGui::SetWindowFontScale(1.8f);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.8f);
                 ImGui::PushStyleColor(ImGuiCol_Text, GUI_COLOR_TEXT_TITLE);
                 if (ImGui::Selectable(gui.users[emuenv.io.user_id].start_type == "image" ? "V" : theme_background.start_screen["add_image"].c_str(), false, ImGuiSelectableFlags_None, SIZE_PACKAGE))
                     sub_menu = SubMenu::IMAGE;
                 ImGui::PopStyleColor();
-                ImGui::SetWindowFontScale(0.72f);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.72f);
                 ImGui::SetCursorPosX(IMAGE_POS.x);
                 ImGui::TextColored(GUI_COLOR_TEXT, "%s", theme_background.start_screen["image"].c_str());
                 const auto DEFAULT_POS = ImVec2(is_not_default ? (SIZE_LIST.x / 2.f) + (SIZE_PACKAGE.x / 2.f) + (30.f * SCALE.y) : (SIZE_LIST.x / 2.f) - (SIZE_PACKAGE.x / 2.f), PACKAGE_POS_Y);
                 if (gui.themes_preview["default"].contains(PACKAGE)) {
                     ImGui::SetCursorPos(DEFAULT_POS);
-                    ImGui::Image(gui.themes_preview["default"][PACKAGE], SIZE_PACKAGE);
+                    ImGui::Image(ImTextureRef(gui.themes_preview["default"][PACKAGE]), SIZE_PACKAGE);
                     ImGui::SetCursorPos(DEFAULT_POS);
-                    ImGui::SetWindowFontScale(1.8f);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.8f);
                     ImGui::PushStyleColor(ImGuiCol_Text, GUI_COLOR_TEXT_TITLE);
                     if (ImGui::Selectable(gui.users[emuenv.io.user_id].start_type == "default" ? "V" : "##default", false, ImGuiSelectableFlags_None, SIZE_PACKAGE))
                         sub_menu = SubMenu::DEFAULT;
                     ImGui::PopStyleColor();
-                    ImGui::SetWindowFontScale(0.72f);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.72f);
                     ImGui::SetCursorPosX(DEFAULT_POS.x);
                     ImGui::TextColored(GUI_COLOR_TEXT, "%s", theme_background.main["default"].c_str());
                 }
                 ImGui::PopStyleVar();
-                ImGui::SetWindowFontScale(0.90f);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.90f);
             } else {
                 const auto START_PREVIEW_POS = ImVec2((SIZE_LIST.x / 2.f) - (SIZE_PREVIEW.x / 2.f), (SIZE_LIST.y / 2.f) - (SIZE_PREVIEW.y / 2.f) - (72.f * SCALE.y));
                 const auto SELECT_BUTTON_POS = ImVec2((SIZE_LIST.x / 2.f) - (BUTTON_SIZE.x / 2.f), (SIZE_LIST.y - 82.f) - BUTTON_SIZE.y);
@@ -633,7 +633,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                     title = themes_info[gui.users[emuenv.io.user_id].theme_id].title;
                     if (gui.themes_preview[gui.users[emuenv.io.user_id].theme_id].contains(LOCK)) {
                         ImGui::SetCursorPos(START_PREVIEW_POS);
-                        ImGui::Image(gui.themes_preview[gui.users[emuenv.io.user_id].theme_id][LOCK], SIZE_PREVIEW);
+                        ImGui::Image(ImTextureRef(gui.themes_preview[gui.users[emuenv.io.user_id].theme_id][LOCK]), SIZE_PREVIEW);
                     }
                     ImGui::SetCursorPos(SELECT_BUTTON_POS);
                     if ((gui.users[emuenv.io.user_id].start_type != "theme") && (ImGui::Button(select, BUTTON_SIZE) || ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_cross)))) {
@@ -660,7 +660,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                     title = theme_background.main["default"];
                     if (gui.themes_preview["default"].contains(LOCK)) {
                         ImGui::SetCursorPos(START_PREVIEW_POS);
-                        ImGui::Image(gui.themes_preview["default"][LOCK], SIZE_PREVIEW);
+                        ImGui::Image(ImTextureRef(gui.themes_preview["default"][LOCK]), SIZE_PREVIEW);
                     }
                     ImGui::SetCursorPos(SELECT_BUTTON_POS);
                     if ((gui.users[emuenv.io.user_id].start_type != "default") && (ImGui::Button(select, BUTTON_SIZE) || ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_cross)))) {
@@ -690,7 +690,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                 delete_user_background.clear();
             }
 
-            ImGui::SetWindowFontScale(0.80f);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.80f);
             ImGui::Columns(3, nullptr, false);
             ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 1.0f));
             for (const auto &background : gui.users[emuenv.io.user_id].backgrounds) {
@@ -698,7 +698,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                 const auto PREVIEW_POS = ImVec2(IMAGE_POS.x + (gui.user_backgrounds_infos[background].prev_pos.x * SCALE.x), IMAGE_POS.y + (gui.user_backgrounds_infos[background].prev_pos.y * SCALE.y));
                 const auto PREVIEW_SIZE = ImVec2(gui.user_backgrounds_infos[background].prev_size.x * SCALE.x, gui.user_backgrounds_infos[background].prev_size.y * SCALE.y);
                 ImGui::SetCursorPos(PREVIEW_POS);
-                ImGui::Image(gui.user_backgrounds[background], PREVIEW_SIZE);
+                ImGui::Image(ImTextureRef(gui.user_backgrounds[background]), PREVIEW_SIZE);
                 ImGui::SetCursorPosY(IMAGE_POS.y);
                 ImGui::PushStyleColor(ImGuiCol_Text, GUI_COLOR_TEXT_TITLE);
                 ImGui::PushID(background.c_str());
@@ -733,7 +733,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
     case SettingsMenu::DATE_TIME:
         // Date & Time
         title = date_time.main["title"];
-        ImGui::SetWindowFontScale(1.2f);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f);
         ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.f, 0.5f));
         if (ImGui::Selectable(date_time.date_format["title"].c_str(), menu == Menu::DATE_FORMAT, ImGuiSelectableFlags_None, ImVec2(0.f, SIZE_SELECT))) {
             if (menu == Menu::UNDEFINED)
@@ -760,7 +760,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
             ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.f, 0.5f));
             ImGui::Columns(2, nullptr, false);
             ImGui::SetColumnWidth(0, 30.f * SCALE.x);
-            ImGui::SetWindowFontScale(1.4f * RES_SCALE.x);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.4f * RES_SCALE.x);
             if (menu == Menu::DATE_FORMAT) {
                 const auto get_date_format_sting = [&](SceSystemParamDateFormat date_format) {
                     std::string date_format_str;
@@ -832,7 +832,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
         if (menu == Menu::UNDEFINED) {
             title = language.main["title"];
             ImGui::Columns(2, nullptr, false);
-            ImGui::SetWindowFontScale(1.2f);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f);
             const auto sys_lang_str = language.main["system_language"].c_str();
             const auto sys_lang_str_size = ImGui::CalcTextSize(sys_lang_str).x;
             ImGui::SetColumnWidth(0, sys_lang_str_size + 40.f);
@@ -845,11 +845,11 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
             }
             ImGui::PopStyleVar();
             ImGui::NextColumn();
-            ImGui::SetWindowFontScale(0.8f);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.8f);
             ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(1.f, 0.5f));
             ImGui::Selectable(get_sys_lang_name(emuenv.cfg.sys_lang).c_str(), false, ImGuiSelectableFlags_None, ImVec2(0.f, SIZE_SELECT));
             ImGui::PopStyleVar();
-            ImGui::SetWindowFontScale(1.2f);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f);
             ImGui::Separator();
             ImGui::NextColumn();
             ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.f, 0.5f));
@@ -857,10 +857,10 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                 menu = Menu::SELECT_INPUT_LANG;
             ImGui::PopStyleVar();
             ImGui::NextColumn();
-            ImGui::SetWindowFontScale(0.8f);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.8f);
             ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(1.f, 0.5f));
             ImGui::Selectable(">", false, ImGuiSelectableFlags_None, ImVec2(0.f, SIZE_SELECT));
-            ImGui::SetWindowFontScale(1.2f);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f);
             ImGui::Separator();
             ImGui::NextColumn();
             ImGui::Columns(1);
@@ -874,7 +874,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                 ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.f, 0.5f));
                 ImGui::Columns(2, nullptr, false);
                 ImGui::SetColumnWidth(0, 30.f * SCALE.x);
-                ImGui::SetWindowFontScale(1.4f * RES_SCALE.x);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.4f * RES_SCALE.x);
                 for (const auto &sys_lang : LIST_SYS_LANG) {
                     ImGui::PushID(sys_lang.first);
                     const auto is_current_lang = emuenv.cfg.sys_lang == sys_lang.first;
@@ -920,7 +920,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
             const auto keyboards_str = language.keyboards["title"].c_str();
             if (sub_menu == SubMenu::UNDEFINED) {
                 title = language.input_language["title"];
-                ImGui::SetWindowFontScale(1.2f);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f);
                 ImGui::Columns(2, nullptr, false);
                 ImGui::SetColumnWidth(0, 600.f * emuenv.manual_dpi_scale);
                 ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.f, 0.5f));
@@ -928,7 +928,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                     sub_menu = SubMenu::SELECT_KEYBOARDS;
                 ImGui::PopStyleVar();
                 ImGui::NextColumn();
-                ImGui::SetWindowFontScale(1.f);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f);
                 ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(1.f, 0.5f));
                 ImGui::Selectable(">", false, ImGuiSelectableFlags_None, ImVec2(0.f, SIZE_SELECT));
                 ImGui::PopStyleVar();
@@ -944,16 +944,16 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                     for (const auto &lang : emuenv.ime.lang.ime_keyboards) {
                         ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.f, 0.5f));
                         ImGui::PushID(lang.first);
-                        ImGui::SetWindowFontScale(1.f);
+                        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f);
                         const auto is_lang_enable = vector_utils::contains(emuenv.cfg.ime_langs, static_cast<uint64_t>(lang.first));
                         if (ImGui::Selectable(is_lang_enable ? "V" : "##lang", false, ImGuiSelectableFlags_SpanAllColumns, ImVec2(0.f, SIZE_SELECT)))
                             selected = std::to_string(lang.first);
                         ImGui::NextColumn();
-                        ImGui::SetWindowFontScale(1.2f);
+                        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f);
                         ImGui::Selectable(lang.second.c_str(), false, ImGuiSelectableFlags_None, ImVec2(0.f, SIZE_SELECT));
                         ImGui::PopStyleVar();
                         ImGui::NextColumn();
-                        ImGui::SetWindowFontScale(1.f);
+                        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f);
                         ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(1.f, 0.5f));
                         ImGui::Selectable(">", false, ImGuiSelectableFlags_None, ImVec2(0.f, SIZE_SELECT));
                         ImGui::Separator();
@@ -965,7 +965,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                 } else {
                     SceImeLanguage lang_select = static_cast<SceImeLanguage>(string_utils::stoi_def(selected, 0, "language"));
                     title = get_ime_lang_index(emuenv.ime, lang_select)->second;
-                    ImGui::SetWindowFontScale(1.2f);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f);
                     ImGui::Columns(2, nullptr, false);
                     ImGui::SetColumnWidth(0, 650.f * SCALE.x);
                     ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.f, 0.5f));
@@ -974,7 +974,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
                     ImGui::NextColumn();
                     auto ime_lang_cfg_index = std::find(emuenv.cfg.ime_langs.begin(), emuenv.cfg.ime_langs.end(), lang_select);
                     auto is_ime_lang_enable = ime_lang_cfg_index != emuenv.cfg.ime_langs.end();
-                    ImGui::SetWindowFontScale(1.4f);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.4f);
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (16.f * SCALE.y));
                     if (ImGui::Checkbox("##lang", &is_ime_lang_enable)) {
                         if (ime_lang_cfg_index != emuenv.cfg.ime_langs.end()) {
@@ -1011,7 +1011,7 @@ void draw_settings(GuiState &gui, EmuEnvState &emuenv) {
     ImGui::PopStyleVar();
 
     // Back
-    ImGui::SetWindowFontScale(1.2f * RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f * RES_SCALE.x);
     ImGui::SetCursorPos(ImVec2(6.f * SCALE.x, WINDOW_SIZE.y - (52.f * SCALE.y)));
     if (ImGui::Button("<<", ImVec2(64.f * SCALE.x, 40.f * SCALE.y)) || ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_circle))) {
         if (settings_menu != SettingsMenu::SELECT) {

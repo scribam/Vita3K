@@ -64,7 +64,7 @@ static void draw_emulation_menu(GuiState &gui, EmuEnvState &emuenv) {
         if (!APP_ICON->first.empty()) {
             const auto POS_MIN = ImGui::GetCursorScreenPos();
             const ImVec2 POS_MAX(POS_MIN.x + ICON_SIZE.x, POS_MIN.y + ICON_SIZE.y);
-            ImGui::GetWindowDrawList()->AddImageRounded(APP_ICON->second, POS_MIN, POS_MAX, ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE, ICON_SIZE.x * SCALE.x, ImDrawFlags_RoundCornersAll);
+            ImGui::GetWindowDrawList()->AddImageRounded(ImTextureRef(APP_ICON->second), POS_MIN, POS_MAX, ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE, ICON_SIZE.x * SCALE.x, ImDrawFlags_RoundCornersAll);
             ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ICON_SIZE.x + PADDING);
         }
         ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign, ImVec2(0.5f, 0.5f));
@@ -78,7 +78,7 @@ static void draw_emulation_menu(GuiState &gui, EmuEnvState &emuenv) {
     if (ImGui::BeginMenu(lang["title"].c_str())) {
         const auto app_list_is_empty = gui.time_apps[emuenv.io.user_id].empty();
         ImGui::SetNextWindowSize(ImVec2(!app_list_is_empty ? 480.f * SCALE.x : 0.f, 0.f));
-        ImGui::SetWindowFontScale(RES_SCALE.x);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * RES_SCALE.x);
         if (ImGui::BeginMenu(lang["last_apps_used"].c_str())) {
             if (!app_list_is_empty) {
                 for (size_t i = 0; i < std::min<size_t>(8, gui.time_apps[emuenv.io.user_id].size()); i++) {
@@ -153,7 +153,7 @@ void draw_main_menu_bar(GuiState &gui, EmuEnvState &emuenv) {
     if (ImGui::BeginMainMenuBar()) {
         const ImVec2 RES_SCALE(emuenv.gui_scale.x, emuenv.gui_scale.y);
 
-        ImGui::SetWindowFontScale(RES_SCALE.x);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * RES_SCALE.x);
         ImGui::PushStyleColor(ImGuiCol_Text, GUI_COLOR_TEXT_MENUBAR);
 
         draw_file_menu(gui, emuenv);
