@@ -63,7 +63,7 @@ void draw_info_message(GuiState &gui, EmuEnvState &emuenv) {
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 10.f * SCALE.x);
         ImGui::BeginChild("##info", WINDOW_SIZE, ImGuiChildFlags_Borders, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoDecoration);
         const auto &title = gui.info_message.title;
-        ImGui::SetWindowFontScale(RES_SCALE.x);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * RES_SCALE.x);
         TextColoredCentered(GUI_COLOR_TEXT_TITLE, title.c_str());
         ImGui::Spacing();
         ImGui::Separator();
@@ -155,53 +155,8 @@ static void init_font(GuiState &gui, EmuEnvState &emuenv) {
     // Set Large Font
     constexpr ImWchar large_font_chars[] = { L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7', L'8', L'9', L':', L'A', L'M', L'P', 0 };
 
-    // clang-format off
-    constexpr ImWchar latin_range[] = {
-        0x0020, 0x017F, // Basic Latin + Latin Supplement
-        0x0370, 0x03FF, // Greek and Coptic
-        0x0400, 0x052F, // Cyrillic + Cyrillic Supplement
-        0x20A0, 0x20CF, // Currency Symbols
-        0x2100, 0x214F, // Letter type symbols
-        0x2DE0, 0x2DFF, // Cyrillic Extended-A
-        0xA640, 0xA69F, // Cyrillic Extended-B
-        0,
-    };
-
-    constexpr ImWchar extra_range[] = {
-        0x0100, 0x017F, // Latin Extended A
-        0x2000, 0x206F, // General Punctuation
-        0x2150, 0x218F, // Numeral forms
-        0x2190, 0x21FF, // Arrows
-        0x2200, 0x22FF, // Math operators
-        0x2460, 0x24FF, // Enclosed Alphanumerics
-        0x25A0, 0x26FF, // Miscellaneous symbols
-        0x4E00, 0x9FFF, // Unified ideograms CJK
-        0,
-    };
-
-    constexpr ImWchar korean_range[] = {
-        0x3131, 0x3163, // Korean alphabets
-        0xAC00, 0xD79D, // Korean characters
-        0,
-    };
-
-    constexpr ImWchar chinese_range[] = {
-        0x2000, 0x206F, // General Punctuation
-        0x4E00, 0x9FAF, // CJK Ideograms
-        0,
-    };
-    // clang-format on
-
-    // Merge Japanese and Extra ranges
-    ImFontGlyphRangesBuilder builder;
-    builder.AddRanges(io.Fonts->GetGlyphRangesJapanese());
-    builder.AddRanges(extra_range);
-    ImVector<ImWchar> japanese_and_extra_ranges;
-    builder.BuildRanges(&japanese_and_extra_ranges);
-
     // Set max texture size
     int max_texture_size = emuenv.renderer->get_max_2d_texture_width();
-    io.Fonts->TexDesiredWidth = max_texture_size;
 
     for (int font_scale_count = std::size(FontScaleCandidates); font_scale_count > 0; font_scale_count--) {
         for (int i = 0; i < font_scale_count; i++) {
@@ -237,7 +192,7 @@ static void init_font(GuiState &gui, EmuEnvState &emuenv) {
                 font_config.OversampleV = 2;
                 font_config.RasterizerDensity = scale;
 
-                gui.vita_font[i] = io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(latin_fw_font_path).c_str(), font_config.SizePixels, &font_config, latin_range);
+                gui.vita_font[i] = io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(latin_fw_font_path).c_str(), font_config.SizePixels, &font_config);
                 font_config.MergeMode = true;
 
                 const auto sys_lang = static_cast<SceSystemParamLang>(emuenv.cfg.sys_lang);
@@ -246,14 +201,14 @@ static void init_font(GuiState &gui, EmuEnvState &emuenv) {
                 // When the system language is Chinese, the Chinese fonts should be loaded before the Japanese fonts
                 // So that the CJK characters can be displayed in Chinese glyphs
                 if (is_chinese)
-                    io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(fw_font_path / "cn0.pvf").c_str(), font_config.SizePixels, &font_config, chinese_range);
+                    io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(fw_font_path / "cn0.pvf").c_str(), font_config.SizePixels, &font_config);
 
-                io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(fw_font_path / "jpn0.pvf").c_str(), font_config.SizePixels, &font_config, japanese_and_extra_ranges.Data);
+                io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(fw_font_path / "jpn0.pvf").c_str(), font_config.SizePixels, &font_config);
 
                 if (emuenv.cfg.asia_font_support || (sys_lang == SCE_SYSTEM_PARAM_LANG_KOREAN))
-                    io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(fw_font_path / "kr0.pvf").c_str(), font_config.SizePixels, &font_config, korean_range);
+                    io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(fw_font_path / "kr0.pvf").c_str(), font_config.SizePixels, &font_config);
                 if (emuenv.cfg.asia_font_support && !is_chinese)
-                    io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(fw_font_path / "cn0.pvf").c_str(), font_config.SizePixels, &font_config, chinese_range);
+                    io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(fw_font_path / "cn0.pvf").c_str(), font_config.SizePixels, &font_config);
                 font_config.MergeMode = false;
 
                 large_font_config.SizePixels = 116.f;
@@ -273,13 +228,13 @@ static void init_font(GuiState &gui, EmuEnvState &emuenv) {
 
                 // Check existence of default font file
                 if (fs::exists(default_font_path)) {
-                    gui.vita_font[i] = io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(default_font_path / "mplus-1mn-bold.ttf").c_str(), font_config.SizePixels, &font_config, latin_range);
+                    gui.vita_font[i] = io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(default_font_path / "mplus-1mn-bold.ttf").c_str(), font_config.SizePixels, &font_config);
                     font_config.MergeMode = true;
-                    io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(default_font_path / "mplus-1mn-bold.ttf").c_str(), font_config.SizePixels, &font_config, japanese_and_extra_ranges.Data);
+                    io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(default_font_path / "mplus-1mn-bold.ttf").c_str(), font_config.SizePixels, &font_config);
 
                     const auto sys_lang = static_cast<SceSystemParamLang>(emuenv.cfg.sys_lang);
                     if (!emuenv.cfg.initial_setup || (sys_lang == SCE_SYSTEM_PARAM_LANG_CHINESE_S) || (sys_lang == SCE_SYSTEM_PARAM_LANG_CHINESE_T))
-                        io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(default_font_path / "SourceHanSansSC-Bold-Min.ttf").c_str(), font_config.SizePixels, &font_config, japanese_and_extra_ranges.Data);
+                        io.Fonts->AddFontFromFileTTF(fs_utils::path_to_utf8(default_font_path / "SourceHanSansSC-Bold-Min.ttf").c_str(), font_config.SizePixels, &font_config);
                     font_config.MergeMode = false;
 
                     large_font_config.SizePixels = 134.f;
@@ -295,9 +250,8 @@ static void init_font(GuiState &gui, EmuEnvState &emuenv) {
         }
 
         // Build font atlas loaded and upload to GPU
-        io.Fonts->Build();
-        LOG_INFO("Maximum font scale set to x{}, Font atlas size: {}x{}", FontScaleCandidates[font_scale_count - 1], io.Fonts->TexWidth, io.Fonts->TexHeight);
-        if (io.Fonts->TexWidth > max_texture_size || io.Fonts->TexHeight > max_texture_size) {
+        LOG_INFO("Maximum font scale set to x{}, Font atlas size: {}x{}", FontScaleCandidates[font_scale_count - 1], io.Fonts->TexMaxWidth, io.Fonts->TexMaxHeight);
+        if (io.Fonts->TexMaxWidth > max_texture_size || io.Fonts->TexMaxHeight > max_texture_size) {
             LOG_WARN("Font atlas size exceeds maximum texture size, retrying with smaller font size.\n");
             io.Fonts->Clear();
         } else {
@@ -716,11 +670,11 @@ void pre_init(GuiState &gui, EmuEnvState &emuenv) {
         init_info.Queue = vk_state.general_queue;
         init_info.PipelineCache = VK_NULL_HANDLE;
         init_info.DescriptorPoolSize = 1024;
-        init_info.RenderPass = vk_state.screen_renderer.default_render_pass;
-        init_info.Subpass = 0;
+        init_info.PipelineInfoMain.RenderPass = vk_state.screen_renderer.default_render_pass;
+        init_info.PipelineInfoMain.Subpass = 0;
         init_info.MinImageCount = vk_state.screen_renderer.surface_capabilities.minImageCount;
         init_info.ImageCount = vk_state.screen_renderer.swapchain_size;
-        init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+        init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
         init_info.Allocator = nullptr;
         init_info.CheckVkResultFn = [](VkResult err) {
             if (err == 0)
@@ -836,7 +790,7 @@ void draw_vita_area(GuiState &gui, EmuEnvState &emuenv) {
     if (gui.vita_area.start_screen)
         draw_start_screen(gui, emuenv);
 
-    ImGui::PushFont(gui.vita_font[emuenv.current_font_level]);
+    ImGui::PushFont(gui.vita_font[emuenv.current_font_level], 0.0f);
 
     if (gui.vita_area.app_close)
         draw_app_close(gui, emuenv);
@@ -895,7 +849,7 @@ void draw_vita_area(GuiState &gui, EmuEnvState &emuenv) {
 }
 
 void draw_ui(GuiState &gui, EmuEnvState &emuenv) {
-    ImGui::PushFont(gui.vita_font[emuenv.current_font_level]);
+    ImGui::PushFont(gui.vita_font[emuenv.current_font_level], 0.0f);
     if ((gui.vita_area.home_screen || !emuenv.io.app_path.empty()) && get_sys_apps_state(gui) && !gui.vita_area.live_area_screen && !gui.vita_area.user_management && (!emuenv.cfg.show_info_bar || !gui.vita_area.information_bar))
         draw_main_menu_bar(gui, emuenv);
 
@@ -914,7 +868,7 @@ void draw_ui(GuiState &gui, EmuEnvState &emuenv) {
 
     ImGui::PopFont();
 
-    ImGui::PushFont(gui.monospaced_font[emuenv.current_font_level]);
+    ImGui::PushFont(gui.monospaced_font[emuenv.current_font_level], 0.0f);
 
     if (gui.debug_menu.threads_dialog)
         draw_threads_dialog(gui, emuenv);

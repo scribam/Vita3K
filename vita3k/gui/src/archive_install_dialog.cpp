@@ -99,7 +99,7 @@ void draw_archive_install_dialog(GuiState &gui, EmuEnvState &emuenv) {
     ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 10.f * SCALE.x);
     ImGui::BeginChild("##archive_Install_child", WINDOW_SIZE, ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysAutoResize | ImGuiChildFlags_AutoResizeX | ImGuiChildFlags_AutoResizeY, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
     const auto POS_BUTTON = (ImGui::GetWindowWidth() / 2.f) - (BUTTON_SIZE.x / 2.f) + (10.f * SCALE.x);
-    ImGui::SetWindowFontScale(RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * RES_SCALE.x);
     TextColoredCentered(GUI_COLOR_TEXT_MENUBAR, title.c_str());
     ImGui::Spacing();
     ImGui::Separator();

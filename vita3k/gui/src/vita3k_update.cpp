@@ -306,17 +306,17 @@ void draw_vita3k_update(GuiState &gui, EmuEnvState &emuenv) {
     ImGui::Begin("##vita3k_update", &gui.help_menu.vita3k_update, ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
 
     if (is_background)
-        ImGui::GetBackgroundDrawList()->AddImage(gui.apps_background["NPXS10015"], WINDOW_POS, display_size);
+        ImGui::GetBackgroundDrawList()->AddImage(ImTextureRef(gui.apps_background["NPXS10015"]), WINDOW_POS, display_size);
     else
         ImGui::GetBackgroundDrawList()->AddRectFilled(WINDOW_POS, display_size, IM_COL32(36.f, 120.f, 12.f, 255.f), 0.f, ImDrawFlags_RoundCornersAll);
 
-    ImGui::SetWindowFontScale(1.6f * RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.6f * RES_SCALE.x);
     ImGui::SetCursorPosY(44.f * SCALE.y);
     TextCentered(lang["title"].c_str());
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (6.f * SCALE.y));
     ImGui::Separator();
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.f * SCALE.x);
-    ImGui::SetWindowFontScale(1.4f * RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.4f * RES_SCALE.x);
     switch (state) {
     case NOT_COMPLETE_UPDATE:
         ImGui::SetCursorPosY((display_size.y / 2.f) - ImGui::GetFontSize());
@@ -336,7 +336,7 @@ void draw_vita3k_update(GuiState &gui, EmuEnvState &emuenv) {
     }
     case DESCRIPTION: {
         ImGui::Spacing();
-        ImGui::SetWindowFontScale(1.4f * RES_SCALE.x);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.4f * RES_SCALE.x);
         TextCentered(fmt::format(fmt::runtime(lang["new_features"]), git_version).c_str());
         ImGui::Spacing();
         ImGui::SetNextWindowPos(ImVec2(display_size.x / 2.f, 136.0f * SCALE.y), ImGuiCond_Always, ImVec2(0.5f, 0.f));
@@ -345,7 +345,7 @@ void draw_vita3k_update(GuiState &gui, EmuEnvState &emuenv) {
         ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 15.f * SCALE.x);
         ImGui::SetNextWindowBgAlpha(0.f);
         ImGui::BeginChild("##description_child", ImVec2(860 * SCALE.x, 334.f * SCALE.y), ImGuiChildFlags_Borders, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings);
-        ImGui::SetWindowFontScale(0.8f);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.8f);
         ImGui::Columns(2, "commit_columns", true);
         ImGui::SetColumnWidth(0, 200 * SCALE.x);
         const auto space_margin = ImGui::GetStyle().ItemSpacing.x * 2.f;
@@ -388,12 +388,12 @@ void draw_vita3k_update(GuiState &gui, EmuEnvState &emuenv) {
 
         break;
     case DOWNLOAD: {
-        ImGui::SetWindowFontScale(1.25f * RES_SCALE.x);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.25f * RES_SCALE.x);
         ImGui::SetCursorPos(ImVec2(102.f * SCALE.x, ImGui::GetCursorPosY() + (44 * SCALE.y)));
         ImGui::PushTextWrapPos(WINDOW_POS.x + (858.f * SCALE.x));
         ImGui::Text("%s", lang["downloading"].c_str());
         ImGui::PopTextWrapPos();
-        ImGui::SetWindowFontScale(1.04f * RES_SCALE.x);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.04f * RES_SCALE.x);
         const auto remaining_str = get_remaining_str(gui.lang, remaining);
         ImGui::SetCursorPos(ImVec2(display_size.x - (90 * SCALE.x) - (ImGui::CalcTextSize(remaining_str.c_str()).x), display_size.y - (196.f * SCALE.y) - ImGui::GetFontSize()));
         ImGui::Text("%s", remaining_str.c_str());
@@ -411,7 +411,7 @@ void draw_vita3k_update(GuiState &gui, EmuEnvState &emuenv) {
         break;
     }
 
-    ImGui::SetWindowFontScale(1.2f * RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f * RES_SCALE.x);
     ImGui::SetCursorPosY(display_size.y - BUTTON_SIZE.y - (20.f * SCALE.y));
     ImGui::Separator();
     ImGui::SetCursorPos(ImVec2(WINDOW_POS.x + (10.f * SCALE.x), (display_size.y - BUTTON_SIZE.y - (12.f * SCALE.y))));

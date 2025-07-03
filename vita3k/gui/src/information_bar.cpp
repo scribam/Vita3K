@@ -380,7 +380,7 @@ static void draw_notice_info(GuiState &gui, EmuEnvState &emuenv) {
     const auto draw_list = ImGui::GetForegroundDrawList();
     if (notice_info_count_new) {
         if (gui.theme_information_bar_notice.contains(NoticeIcon::NEW))
-            draw_list->AddImage(gui.theme_information_bar_notice[NoticeIcon::NEW], NOTICE_ICON_POS, NOTICE_ICON_POS_MAX);
+            draw_list->AddImage(ImTextureRef(gui.theme_information_bar_notice[NoticeIcon::NEW]), NOTICE_ICON_POS, NOTICE_ICON_POS_MAX);
         else
             draw_list->AddCircleFilled(ImVec2(VIEWPORT_WIDTH_POS_MAX - (24.f * SCALE.x), VIEWPORT_POS.y + (16.f * SCALE.y)), 60.f * SCALE.x, IM_COL32(11.f, 90.f, 252.f, 255.f));
         const auto FONT_SCALE = 40.f * SCALE.x;
@@ -389,7 +389,7 @@ static void draw_notice_info(GuiState &gui, EmuEnvState &emuenv) {
         draw_list->AddText(gui.vita_font[emuenv.current_font_level], FONT_SCALE, ImVec2(VIEWPORT_WIDTH_POS_MAX - (NOTICE_SIZE.x / 2.f) - (NOTICE_COUNT_SIZE / 2.f) + (12.f * SCALE.x), VIEWPORT_POS.y + (15.f * SCALE.y)), NOTICE_COLOR, std::to_string(notice_info_count_new).c_str());
     } else {
         if (gui.theme_information_bar_notice.contains(NoticeIcon::NO))
-            draw_list->AddImage(gui.theme_information_bar_notice[NoticeIcon::NO], NOTICE_ICON_POS, NOTICE_ICON_POS_MAX);
+            draw_list->AddImage(ImTextureRef(gui.theme_information_bar_notice[NoticeIcon::NO]), NOTICE_ICON_POS, NOTICE_ICON_POS_MAX);
         else
             draw_list->AddCircleFilled(ImVec2(VIEWPORT_WIDTH_POS_MAX - (28.f * SCALE.x), VIEWPORT_POS.y + (18.f * SCALE.y)), 44.f * SCALE.x, IM_COL32(62.f, 98.f, 160.f, 255.f));
     }
@@ -416,7 +416,7 @@ static void draw_notice_info(GuiState &gui, EmuEnvState &emuenv) {
         ImGui::BeginChild("##notice_info_child", POPUP_SIZE, ImGuiChildFlags_Borders, ImGuiWindowFlags_NoSavedSettings);
         auto &lang = gui.lang.indicator;
         if (notice_info.empty()) {
-            ImGui::SetWindowFontScale(1.2f * RES_SCALE.x);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f * RES_SCALE.x);
             const auto no_notif = lang["no_notif"].c_str();
             const auto calc_text = ImGui::CalcTextSize(no_notif);
             ImGui::SetCursorPos(ImVec2((POPUP_SIZE.x / 2.f) - (calc_text.x / 2.f), (POPUP_SIZE.y / 2.f) - (calc_text.y / 2.f)));
@@ -433,7 +433,7 @@ static void draw_notice_info(GuiState &gui, EmuEnvState &emuenv) {
                 const auto ICON_POS = ImGui::GetCursorPos();
                 if (gui.notice_info_icon.contains(notice.time)) {
                     ImGui::SetCursorPos(ImVec2(ICON_POS.x + (ImGui::GetColumnWidth() / 2.f) - (ICON_SIZE.x / 2.f), ICON_POS.y + (SELECT_SIZE.y / 2.f) - (ICON_SIZE.y / 2.f)));
-                    ImGui::Image(gui.notice_info_icon[notice.time], ICON_SIZE);
+                    ImGui::Image(ImTextureRef(gui.notice_info_icon[notice.time]), ICON_SIZE);
                 }
                 ImGui::SetCursorPosY(ICON_POS.y);
                 ImGui::PushID(std::to_string(notice.time).c_str());
@@ -460,11 +460,11 @@ static void draw_notice_info(GuiState &gui, EmuEnvState &emuenv) {
                 ImGui::PopStyleColor(3);
                 ImGui::PopID();
                 ImGui::NextColumn();
-                ImGui::SetWindowFontScale(1.3f * RES_SCALE.x);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.3f * RES_SCALE.x);
                 ImGui::SetCursorPosY(ImGui::GetCursorPosY() + (14.f * SCALE.y));
                 ImGui::TextColored(GUI_COLOR_TEXT, "%s", notice.name.c_str());
                 ImGui::Spacing();
-                ImGui::SetWindowFontScale(0.9f * RES_SCALE.x);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.9f * RES_SCALE.x);
                 ImGui::TextColored(GUI_COLOR_TEXT, "%s", notice.msg.c_str());
                 const auto notice_time = get_notice_time(gui, emuenv, notice.time);
                 const auto notice_time_size = ImGui::CalcTextSize(notice_time.c_str());
@@ -482,7 +482,7 @@ static void draw_notice_info(GuiState &gui, EmuEnvState &emuenv) {
             const auto DELETE_POPUP_SIZE = ImVec2(756.0f * SCALE.x, 436.0f * SCALE.y);
             const auto BUTTON_SIZE = ImVec2(320.f * SCALE.x, 46.f * SCALE.y);
 
-            ImGui::SetWindowFontScale(1.f * RES_SCALE.x);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f * RES_SCALE.x);
             ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.f * SCALE.x);
             ImGui::SetCursorPos(ImVec2(VIEWPORT_SIZE.x - (70.f * SCALE.x), VIEWPORT_SIZE.y - (52.f * SCALE.y)));
             if (ImGui::Button("...", ImVec2(64.f * SCALE.x, 40.f * SCALE.y)) || ImGui::IsKeyPressed(static_cast<ImGuiKey>(emuenv.cfg.keyboard_button_triangle)))
@@ -494,7 +494,7 @@ static void draw_notice_info(GuiState &gui, EmuEnvState &emuenv) {
                 ImGui::SetNextWindowSize(DELETE_POPUP_SIZE, ImGuiCond_Always);
                 ImGui::SetNextWindowPos(ImVec2(VIEWPORT_POS.x + (VIEWPORT_SIZE.x / 2.f) - (DELETE_POPUP_SIZE.x / 2.f), VIEWPORT_POS.y + (VIEWPORT_SIZE.y / 2.f) - (DELETE_POPUP_SIZE.y / 2.f)));
                 if (ImGui::BeginPopupModal("Delete All", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings)) {
-                    ImGui::SetWindowFontScale(1.4f * RES_SCALE.x);
+                    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.4f * RES_SCALE.x);
                     auto &common = emuenv.common_dialog.lang.common;
                     ImGui::SetCursorPosY((DELETE_POPUP_SIZE.y / 2.f) - (46.f * SCALE.y));
                     TextColoredCentered(GUI_COLOR_TEXT, lang["notif_deleted"].c_str());
@@ -518,7 +518,7 @@ static void draw_notice_info(GuiState &gui, EmuEnvState &emuenv) {
                 ImGui::EndPopup();
             }
             ImGui::PopStyleVar();
-            ImGui::SetWindowFontScale(1.f);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f);
         }
     }
     ImGui::End();
@@ -592,7 +592,7 @@ void draw_information_bar(GuiState &gui, EmuEnvState &emuenv) {
 
             // Check if icon exist
             if (APP_ICON_TYPE.contains(APPS_OPENED))
-                draw_list->AddImageRounded(APP_ICON_TYPE[APPS_OPENED], ICON_POS_MIN, ICON_POS_MAX, ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE, ICON_SIZE_SCALE, ImDrawFlags_RoundCornersAll);
+                draw_list->AddImageRounded(ImTextureRef(APP_ICON_TYPE[APPS_OPENED]), ICON_POS_MIN, ICON_POS_MAX, ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE, ICON_SIZE_SCALE, ImDrawFlags_RoundCornersAll);
             else
                 draw_list->AddCircleFilled(ICON_CENTER_POS, ICON_SIZE_SCALE / 2.f, IM_COL32_WHITE);
 

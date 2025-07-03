@@ -241,14 +241,14 @@ void draw_app_close(GuiState &gui, EmuEnvState &emuenv) {
 
     const auto ICON_SIZE = ImVec2(64.f * SCALE.x, 64.f * SCALE.y);
 
-    ImGui::SetWindowFontScale(1.4f * RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.4f * RES_SCALE.x);
     ImGui::SetCursorPos(ImVec2(50.f * SCALE.x, 108.f * SCALE.y));
     ImGui::TextColored(GUI_COLOR_TEXT, "%s", gui.lang.game_data["app_close"].c_str());
     if (gui.app_selector.user_apps_icon.contains(emuenv.io.app_path)) {
         const auto ICON_POS_SCALE = ImVec2(50.f * SCALE.x, (WINDOW_SIZE.y / 2.f) - (ICON_SIZE.y / 2.f) - (10.f * SCALE.y));
         ImGui::SetCursorPos(ICON_POS_SCALE);
         const auto POS_MIN = ImGui::GetCursorScreenPos();
-        ImGui::GetWindowDrawList()->AddImageRounded(get_app_icon(gui, emuenv.io.app_path)->second, POS_MIN, ImVec2(POS_MIN.x + ICON_SIZE.x, POS_MIN.y + ICON_SIZE.y), ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE, ICON_SIZE.x, ImDrawFlags_RoundCornersAll);
+        ImGui::GetWindowDrawList()->AddImageRounded(ImTextureRef(get_app_icon(gui, emuenv.io.app_path)->second), POS_MIN, ImVec2(POS_MIN.x + ICON_SIZE.x, POS_MIN.y + ICON_SIZE.y), ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE, ICON_SIZE.x, ImDrawFlags_RoundCornersAll);
     }
     ImGui::SetCursorPos(ImVec2(ICON_SIZE.x + (72.f * SCALE.x), (WINDOW_SIZE.y / 2.f) - ImGui::CalcTextSize(emuenv.current_app_title.c_str()).y + (4.f * SCALE.y)));
     ImGui::TextColored(GUI_COLOR_TEXT, "%s", emuenv.current_app_title.c_str());
@@ -592,7 +592,7 @@ void draw_home_screen(GuiState &gui, EmuEnvState &emuenv) {
 
     auto &lang = gui.lang.home_screen;
 
-    ImGui::SetWindowFontScale(0.9f * VIEWPORT_RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.9f * VIEWPORT_RES_SCALE.x);
 
     // Sort Apps list when is not sorted
     if (!gui.app_selector.is_app_list_sorted)
@@ -673,7 +673,7 @@ void draw_home_screen(GuiState &gui, EmuEnvState &emuenv) {
             app_compat_state = ALL_COMPAT_STATE;
         }
         if (ImGui::BeginMenu(lang["by_region"].c_str())) {
-            ImGui::SetWindowFontScale(1.1f * VIEWPORT_RES_SCALE.x);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.1f * VIEWPORT_RES_SCALE.x);
             if (ImGui::MenuItem(lang["usa"].c_str(), nullptr, app_region == USA))
                 app_region = USA;
             if (ImGui::MenuItem(lang["europe"].c_str(), nullptr, app_region == EURO))
@@ -685,7 +685,7 @@ void draw_home_screen(GuiState &gui, EmuEnvState &emuenv) {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu(lang["by_type"].c_str())) {
-            ImGui::SetWindowFontScale(1.1f * VIEWPORT_RES_SCALE.x);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.1f * VIEWPORT_RES_SCALE.x);
             if (ImGui::MenuItem(lang["commercial"].c_str(), nullptr, app_region == COMMERCIAL))
                 app_region = COMMERCIAL;
             if (ImGui::MenuItem(lang["homebrew"].c_str(), nullptr, app_region == HOMEBREW))
@@ -693,7 +693,7 @@ void draw_home_screen(GuiState &gui, EmuEnvState &emuenv) {
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu(lang["by_compatibility_state"].c_str())) {
-            ImGui::SetWindowFontScale(1.1f * VIEWPORT_RES_SCALE.x);
+            ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.1f * VIEWPORT_RES_SCALE.x);
             if (ImGui::MenuItem(lang["all"].c_str(), nullptr, app_compat_state == ALL_COMPAT_STATE))
                 app_compat_state = ALL_COMPAT_STATE;
             auto &lang_compat = gui.lang.compatibility.states;
@@ -763,7 +763,7 @@ void draw_home_screen(GuiState &gui, EmuEnvState &emuenv) {
         ImGui::SetColumnWidth(3, GRID_COLUMN_SIZE);
     }
 
-    ImGui::SetWindowFontScale(1.1f);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.1f);
     ImGui::PushStyleColor(ImGuiCol_Text, GUI_COLOR_TEXT);
 
     std::vector<std::string> visible_apps{};
@@ -855,7 +855,7 @@ void draw_home_screen(GuiState &gui, EmuEnvState &emuenv) {
                         ImGui::SetCursorPos(ImVec2(POS_ICON.x + (5.f * VIEWPORT_SCALE.x), POS_ICON.y + (5.f * VIEWPORT_SCALE.y)));
                     const auto POS_MIN = ImGui::GetCursorScreenPos();
                     const ImVec2 POS_MAX(POS_MIN.x + ICON_SIZE.x, POS_MIN.y + ICON_SIZE.y);
-                    ImGui::GetWindowDrawList()->AddImageRounded(apps_icon[app.path], POS_MIN, POS_MAX, ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE, ICON_SIZE.x * VIEWPORT_SCALE.x, ImDrawFlags_RoundCornersAll);
+                    ImGui::GetWindowDrawList()->AddImageRounded(ImTextureRef(apps_icon[app.path]), POS_MIN, POS_MAX, ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE, ICON_SIZE.x * VIEWPORT_SCALE.x, ImDrawFlags_RoundCornersAll);
                 }
 
                 // Draw the custom config button
@@ -936,7 +936,7 @@ void draw_home_screen(GuiState &gui, EmuEnvState &emuenv) {
 
     ImGui::PopStyleColor();
     ImGui::Columns(1);
-    ImGui::SetWindowFontScale(1.f);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f);
     ImGui::EndChild();
 
     // When visible apps list is not empty, set first visible app

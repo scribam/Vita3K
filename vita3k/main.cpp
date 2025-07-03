@@ -363,7 +363,7 @@ int main(int argc, char *argv[]) {
 
         if (gui.apps_background.contains(emuenv.io.app_path))
             // Display application background
-            ImGui::GetBackgroundDrawList()->AddImage(gui.apps_background[emuenv.io.app_path], pos_min, pos_max);
+            ImGui::GetBackgroundDrawList()->AddImage(ImTextureRef(gui.apps_background[emuenv.io.app_path]), pos_min, pos_max);
         // Application background not found
         else
             gui::draw_background(gui, emuenv);
@@ -438,7 +438,7 @@ int main(int argc, char *argv[]) {
         gui::draw_vita_area(gui, emuenv);
 
         if (emuenv.cfg.performance_overlay && !emuenv.kernel.is_threads_paused() && (emuenv.common_dialog.status != SCE_COMMON_DIALOG_STATUS_RUNNING)) {
-            ImGui::PushFont(gui.vita_font[emuenv.current_font_level]);
+            ImGui::PushFont(gui.vita_font[emuenv.current_font_level], 0.0f);
             gui::draw_perf_overlay(gui, emuenv);
             ImGui::PopFont();
         }

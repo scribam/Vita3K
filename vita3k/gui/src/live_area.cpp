@@ -640,7 +640,7 @@ void draw_live_area_screen(GuiState &gui, EmuEnvState &emuenv) {
     const auto window_draw_list = ImGui::GetWindowDrawList();
 
     if (gui.live_area_contents[app_path].contains("livearea-background"))
-        window_draw_list->AddImage(gui.live_area_contents[app_path]["livearea-background"], pos_bg, ImVec2(pos_bg.x + background_size.x, pos_bg.y + background_size.y));
+        window_draw_list->AddImage(ImTextureRef(gui.live_area_contents[app_path]["livearea-background"]), pos_bg, ImVec2(pos_bg.x + background_size.x, pos_bg.y + background_size.y));
     else
         window_draw_list->AddRectFilled(pos_bg, ImVec2(pos_bg.x + background_size.x, pos_bg.y + background_size.y), IM_COL32(148.f, 164.f, 173.f, 255.f), 0.f, ImDrawFlags_RoundCornersAll);
 
@@ -775,11 +775,11 @@ void draw_live_area_screen(GuiState &gui, EmuEnvState &emuenv) {
         // Display items
         if (gui.live_items[app_path][frame.id].contains("background")) {
             ImGui::SetCursorPos(bg_pos);
-            ImGui::Image(gui.live_items[app_path][frame.id]["background"][current_item[app_path][frame.id]], bg_scal_size);
+            ImGui::Image(ImTextureRef(gui.live_items[app_path][frame.id]["background"][current_item[app_path][frame.id]]), bg_scal_size);
         }
         if (gui.live_items[app_path][frame.id].contains("image")) {
             ImGui::SetCursorPos(img_pos);
-            ImGui::Image(gui.live_items[app_path][frame.id]["image"][current_item[app_path][frame.id]], img_scal_size);
+            ImGui::Image(ImTextureRef(gui.live_items[app_path][frame.id]["image"][current_item[app_path][frame.id]]), img_scal_size);
         }
 
         // Target link
@@ -847,7 +847,7 @@ void draw_live_area_screen(GuiState &gui, EmuEnvState &emuenv) {
                 }
 
                 const auto size_text_scale = str_tag.size != 0 ? str_tag.size / 19.2f : 1.f;
-                ImGui::SetWindowFontScale(size_text_scale * RES_SCALE.x);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * size_text_scale * RES_SCALE.x);
 
                 // Calculate text pixel size
                 ImVec2 calc_text_size;
@@ -1015,12 +1015,12 @@ void draw_live_area_screen(GuiState &gui, EmuEnvState &emuenv) {
                 if (liveitem[app_path][frame.id]["text"]["word-wrap"].second != "off")
                     ImGui::PopTextWrapPos();
                 ImGui::EndChild();
-                ImGui::SetWindowFontScale(RES_SCALE.x);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * RES_SCALE.x);
             }
         }
     }
 
-    ImGui::SetWindowFontScale(RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * RES_SCALE.x);
     const auto default_font_scale = (25.f * emuenv.manual_dpi_scale) * (ImGui::GetFontSize() / (19.2f * emuenv.manual_dpi_scale));
     const auto font_size_scale = default_font_scale / ImGui::GetFontSize();
 
@@ -1043,7 +1043,7 @@ void draw_live_area_screen(GuiState &gui, EmuEnvState &emuenv) {
 
     if (gui.live_area_contents[app_path].contains("gate")) {
         ImGui::SetCursorPos(GATE_POS);
-        ImGui::Image(gui.live_area_contents[app_path]["gate"], GATE_SIZE);
+        ImGui::Image(ImTextureRef(gui.live_area_contents[app_path]["gate"]), GATE_SIZE);
     } else {
         // Draw background of gate
         window_draw_list->AddRectFilled(GATE_POS_MIN, GATE_POS_MAX, IM_COL32(47, 51, 50, 255), 10.0f * SCALE.x, ImDrawFlags_RoundCornersAll);
@@ -1056,7 +1056,7 @@ void draw_live_area_screen(GuiState &gui, EmuEnvState &emuenv) {
         // check if app icon exist
         auto &APP_ICON_TYPE = app_path.starts_with("NPXS") && (app_path != "NPXS10007") ? gui.app_selector.sys_apps_icon : gui.app_selector.user_apps_icon;
         if (APP_ICON_TYPE.contains(app_path)) {
-            window_draw_list->AddImageRounded(APP_ICON_TYPE[app_path], ICON_POS_MINI_SCALE, ICON_POS_MAX_SCALE,
+            window_draw_list->AddImageRounded(ImTextureRef(APP_ICON_TYPE[app_path]), ICON_POS_MINI_SCALE, ICON_POS_MAX_SCALE,
                 ImVec2(0, 0), ImVec2(1, 1), IM_COL32_WHITE, 75.f * SCALE.x, ImDrawFlags_RoundCornersAll);
         } else
             window_draw_list->AddCircleFilled(ICON_CENTER_POS, ICON_SIZE_SCALE / 2.f, IM_COL32_WHITE);
@@ -1218,7 +1218,7 @@ void draw_live_area_screen(GuiState &gui, EmuEnvState &emuenv) {
         if (ImGui::Selectable("##right", false, ImGuiSelectableFlags_None, SELECTABLE_SIZE))
             ++gui.live_area_app_current_open;
     }
-    ImGui::SetWindowFontScale(1.f);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f);
     ImGui::End();
     ImGui::PopStyleVar(3);
 }

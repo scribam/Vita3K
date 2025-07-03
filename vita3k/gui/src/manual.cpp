@@ -128,7 +128,7 @@ void draw_manual(GuiState &gui, EmuEnvState &emuenv) {
 
     // Draw manual image if exists and is valid
     if (!gui.manuals.empty() && gui.manuals[current_page])
-        ImGui::Image(gui.manuals[current_page], ImVec2(display_size.x, height_manual_pages[current_page] * SCALE.y));
+        ImGui::Image(ImTextureRef(gui.manuals[current_page]), ImVec2(display_size.x, height_manual_pages[current_page] * SCALE.y));
 
     // Set max scroll
     max_scroll = ImGui::GetScrollMaxY();
@@ -148,7 +148,7 @@ void draw_manual(GuiState &gui, EmuEnvState &emuenv) {
     ImGui::BeginChild("##manual_buttons", display_size, ImGuiChildFlags_None, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
 
     // Set window font scale for buttons
-    ImGui::SetWindowFontScale(RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * RES_SCALE.x);
 
     // Hide button when right click is pressed on mouse
     if (!ImGui::IsAnyItemHovered() && ImGui::IsMouseClicked(0))
