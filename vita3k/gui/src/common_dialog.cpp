@@ -31,7 +31,7 @@ namespace gui {
 static void draw_ime_dialog(DialogState &common_dialog, float FONT_SCALE) {
     ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::Begin("##ime_dialog", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize);
-    ImGui::SetWindowFontScale(FONT_SCALE);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * FONT_SCALE);
     TextColoredCentered(GUI_COLOR_TEXT_TITLE, common_dialog.ime.title);
     ImGui::Spacing();
     // TODO: setting the bufsize to max_length + 1 is not correct (except when using only 1-byte UTF-8 characters)
@@ -81,7 +81,7 @@ static void draw_message_dialog(DialogState &common_dialog, float FONT_SCALE, Im
     ImGui::Begin("##Message Dialog", nullptr, ImGuiWindowFlags_NoDecoration);
     ImGui::SetCursorPosY(WINDOW_SIZE.y / 2 - 40.f * SCALE.y);
     ImGui::BeginGroup();
-    ImGui::SetWindowFontScale(FONT_SCALE);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * FONT_SCALE);
     TextCentered(common_dialog.msg.message.c_str(), 50.f * SCALE.x);
     if (common_dialog.msg.has_progress_bar) {
         ImGui::Spacing();
@@ -128,7 +128,7 @@ static void draw_trophy_setup_dialog(DialogState &common_dialog, float FONT_SCAL
         ImGui::SetNextWindowPos(ImVec2(display_size.x / 2.f, display_size.y / 2.f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
         ImGui::BeginChild("##preparing_app_child", WINDOW_SIZE, ImGuiChildFlags_None, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
         const auto str = common_dialog.lang.trophy["preparing_start_app"].c_str();
-        ImGui::SetWindowFontScale(1.2f * FONT_SCALE);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f * FONT_SCALE);
         const auto str_size = ImGui::CalcTextSize(str);
         const auto STR_POS = ImVec2((WINDOW_SIZE.x / 2.f) - (str_size.x / 2.f), (WINDOW_SIZE.y / 2.f) - (str_size.y / 2.f));
         ImGui::SetCursorPos(STR_POS);
@@ -344,7 +344,7 @@ static void draw_save_info(GuiState &gui, EmuEnvState &emuenv, const ImVec2 WIND
         ImGui::Image(icon_texture, THUMBNAIL_SIZE);
     }
 
-    ImGui::SetWindowFontScale(1.5f * FONT_SCALE);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.5f * FONT_SCALE);
     ImGui::SetCursorPos(ImVec2(292 * SCALE.x, (16.f * SCALE.y) + (THUMBNAIL_SIZE.y / 2.f) - (ImGui::GetFontSize() / 2.f)));
     ImGui::Text("%s", emuenv.common_dialog.savedata.title[emuenv.common_dialog.savedata.selected_save].c_str());
     ImGui::SetCursorPos(ImVec2(ICON_POS.x, ICON_POS.y + THUMBNAIL_SIZE.y + (20.f * SCALE.y)));
@@ -359,7 +359,7 @@ static void draw_save_info(GuiState &gui, EmuEnvState &emuenv, const ImVec2 WIND
     ImGui::Text("%s", DETAILS_STR.c_str());
     const ImVec2 BUTTON_SIZE = ImVec2(64 * SCALE.x, 34 * SCALE.y);
     const ImVec2 BUTTON_POS = ImVec2(6.f * SCALE.x, WINDOW_SIZE.y - (BUTTON_SIZE.y + 14 * SCALE.y));
-    ImGui::SetWindowFontScale(1.f * FONT_SCALE);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f * FONT_SCALE);
     ImGui::SetCursorPos(BUTTON_POS);
     if (ImGui::Button("Back", BUTTON_SIZE))
         emuenv.common_dialog.savedata.draw_info_window = false;
@@ -412,11 +412,11 @@ static void draw_savedata_dialog_list(GuiState &gui, EmuEnvState &emuenv, float 
             ImGui::SetScrollHereY(1.f);
     }
 
-    ImGui::SetWindowFontScale(1.2f * FONT_SCALE);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f * FONT_SCALE);
     ImGui::SetCursorPos(ImVec2(save_pos.x, save_pos.y + (is_save_exist ? 10.f * SCALE.y : (THUMBNAIL_SIZE.y / 2.f) - (ImGui::GetFontSize() / 2.f))));
     ImGui::BeginGroup();
     ImGui::Text("%s", emuenv.common_dialog.savedata.title[loop_index].c_str());
-    ImGui::SetWindowFontScale(1.f * FONT_SCALE);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f * FONT_SCALE);
     const auto sys_date_format = (SceSystemParamDateFormat)emuenv.cfg.sys_date_format;
     switch (emuenv.common_dialog.savedata.list_style) {
     case SCE_SAVEDATA_DIALOG_LIST_ITEM_STYLE_TITLE_DATE_SUBTITLE:
@@ -437,7 +437,7 @@ static void draw_savedata_dialog_list(GuiState &gui, EmuEnvState &emuenv, float 
         break;
     }
     ImGui::EndGroup();
-    ImGui::SetWindowFontScale(1.2f * FONT_SCALE);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f * FONT_SCALE);
     const ImVec2 THUMBNAIL_POS(150.f * SCALE.x, save_pos.y);
     const auto icon_texture = check_and_init_icon_texture(emuenv, loop_index);
     if (icon_texture) {
@@ -484,7 +484,7 @@ static void draw_savedata_dialog(GuiState &gui, EmuEnvState &emuenv, float FONT_
         save_data_slot_list.clear();
         save_data_slot_list_visible.clear();
 
-        ImGui::SetWindowFontScale(1.56f * FONT_SCALE);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.56f * FONT_SCALE);
         const ImVec2 CANCEL_BUTTON_POS(20.f * SCALE.x, 42.f * SCALE.y);
         ImGui::SetCursorPos(CANCEL_BUTTON_POS);
         const ImVec2 CANCEL_BUTTON_SIZE(46 * SCALE.x, 46 * SCALE.y);
@@ -506,7 +506,7 @@ static void draw_savedata_dialog(GuiState &gui, EmuEnvState &emuenv, float FONT_
         ImGui::Text("%s", emuenv.common_dialog.savedata.list_title.c_str());
         ImGui::SetCursorPosY(95.f * SCALE.y);
         ImGui::Separator();
-        ImGui::SetWindowFontScale(1.f);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f);
         const auto WINDOW_SIZE = ImVec2(VIEWPORT_SIZE.x, 448.f * SCALE.y);
         ImGui::SetCursorPos(WINDOW_POS);
         ImGui::SetNextWindowBgAlpha(0.f);
@@ -530,7 +530,7 @@ static void draw_savedata_dialog(GuiState &gui, EmuEnvState &emuenv, float FONT_
 
             if (existing_saves_count == 0) {
                 save_data_list_type_selected = CANCEL;
-                ImGui::SetWindowFontScale(1.56f * FONT_SCALE);
+                ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.56f * FONT_SCALE);
                 ImGui::SetCursorPosY(150.f * SCALE.y);
                 TextCentered(emuenv.common_dialog.lang.save_data.load["no_saved_data"].c_str());
             }
@@ -546,7 +546,7 @@ static void draw_savedata_dialog(GuiState &gui, EmuEnvState &emuenv, float FONT_
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 12.f * SCALE.x);
         ImGui::PushStyleColor(ImGuiCol_ChildBg, GUI_COMMON_DIALOG_BG);
         ImGui::BeginChild("##save_data_fixed_dialog", WINDOW_SIZE, ImGuiChildFlags_Borders, flags);
-        ImGui::SetWindowFontScale(1.2f * FONT_SCALE);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.2f * FONT_SCALE);
 
         const ImVec2 ICON_POS(48 * SCALE.x, 34 * SCALE.y);
 
@@ -566,7 +566,7 @@ static void draw_savedata_dialog(GuiState &gui, EmuEnvState &emuenv, float FONT_
         if (!emuenv.common_dialog.savedata.title[emuenv.common_dialog.savedata.selected_save].empty()) {
             ImGui::Text("%s", emuenv.common_dialog.savedata.title[emuenv.common_dialog.savedata.selected_save].c_str());
         }
-        ImGui::SetWindowFontScale(1.f * FONT_SCALE);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f * FONT_SCALE);
         if (emuenv.common_dialog.savedata.has_date[emuenv.common_dialog.savedata.selected_save]) {
             ImGui::Text("%s", get_save_date_time((SceSystemParamDateFormat)emuenv.cfg.sys_date_format, emuenv.common_dialog.savedata.date[emuenv.common_dialog.savedata.selected_save]).c_str());
         }
@@ -577,7 +577,7 @@ static void draw_savedata_dialog(GuiState &gui, EmuEnvState &emuenv, float FONT_
 
         ImGui::SetCursorPosY(ICON_POS.y + THUMBNAIL_SIZE.y + (10.f * SCALE.y));
         ImGui::Separator();
-        ImGui::SetWindowFontScale(1.25f * FONT_SCALE);
+        ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.25f * FONT_SCALE);
         ImGui::SetCursorPosY((WINDOW_SIZE.y / 2.f) + (20.f * SCALE.y));
         TextCentered(emuenv.common_dialog.savedata.msg.c_str(), 50.f * SCALE.x);
         if (emuenv.common_dialog.savedata.has_progress_bar) {
@@ -630,7 +630,7 @@ static void draw_savedata_dialog(GuiState &gui, EmuEnvState &emuenv, float FONT_
 }
 
 void draw_common_dialog(GuiState &gui, EmuEnvState &emuenv) {
-    ImGui::PushFont(gui.vita_font[emuenv.current_font_level]);
+    ImGui::PushFont(gui.vita_font[emuenv.current_font_level], 0.0f);
     const auto RES_SCALE = ImVec2(emuenv.gui_scale.x, emuenv.gui_scale.y);
     const auto SCALE = ImVec2(RES_SCALE.x * emuenv.manual_dpi_scale, RES_SCALE.y * emuenv.manual_dpi_scale);
     if (emuenv.common_dialog.status == SCE_COMMON_DIALOG_STATUS_RUNNING) {

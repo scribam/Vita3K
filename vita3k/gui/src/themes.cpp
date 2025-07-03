@@ -365,7 +365,7 @@ void draw_background(GuiState &gui, EmuEnvState &emuenv) {
 
         const auto &background = is_user_background ? gui.user_backgrounds[user_bg_path] : gui.theme_backgrounds[gui.current_theme_bg];
 
-        draw_list->AddImage(background, background_pos_min, background_pos_max);
+        draw_list->AddImage(ImTextureRef(background), background_pos_min, background_pos_max);
     }
 }
 
@@ -394,7 +394,7 @@ void draw_start_screen(GuiState &gui, EmuEnvState &emuenv) {
     ImGui::Begin("##start_screen", &gui.vita_area.start_screen, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
 
     if (gui.start_background)
-        draw_list->AddImage(gui.start_background, WINDOW_POS, WINDOW_POS_MAX);
+        draw_list->AddImage(ImTextureRef(gui.start_background), WINDOW_POS, WINDOW_POS_MAX);
     else
         draw_list->AddRectFilled(WINDOW_POS, WINDOW_POS_MAX, IM_COL32(43.f, 44.f, 47.f, 255.f), 0.f, ImDrawFlags_RoundCornersAll);
 
@@ -407,7 +407,7 @@ void draw_start_screen(GuiState &gui, EmuEnvState &emuenv) {
 
     SAFE_LOCALTIME(&tt, &local);
 
-    ImGui::PushFont(gui.vita_font[emuenv.current_font_level]);
+    ImGui::PushFont(gui.vita_font[emuenv.current_font_level], 0.0f);
     const auto DEFAULT_FONT_SCALE = ImGui::GetFontSize() / (19.2f * SCALE.x);
     const auto SCAL_PIX_DATE_FONT = 34.f / 28.f;
     const auto DATE_FONT_SIZE = (34.f * SCALE.x) * DEFAULT_FONT_SCALE;
@@ -422,7 +422,7 @@ void draw_start_screen(GuiState &gui, EmuEnvState &emuenv) {
     draw_list->AddText(gui.vita_font[emuenv.current_font_level], DATE_FONT_SIZE * RES_SCALE.x, DATE_POS, start_param.date_color, DATE_STR.c_str());
     ImGui::PopFont();
 
-    ImGui::PushFont(gui.large_font[emuenv.current_font_level]);
+    ImGui::PushFont(gui.large_font[emuenv.current_font_level], 0.0f);
     const auto DEFAULT_LARGE_FONT_SCALE = ImGui::GetFontSize() / (116.f * SCALE.y);
     const auto LARGE_FONT_SIZE = (116.f * SCALE.y) * DEFAULT_FONT_SCALE;
     const auto PIX_LARGE_FONT_SCALE = (96.f * SCALE.y) / ImGui::GetFontSize();

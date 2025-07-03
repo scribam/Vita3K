@@ -75,7 +75,7 @@ static void draw_trophy_unlocked(GuiState &gui, EmuEnvState &emuenv, NpTrophyUnl
     ImGui::Columns(2, nullptr, false);
     ImGui::SetColumnWidth(0, TROPHY_WINDOW_ICON_SIZE + TROPHY_WINDOW_MARGIN_PADDING * 2);
     ImGui::SetCursorPos(ImVec2(TROPHY_WINDOW_MARGIN_PADDING, TROPHY_ICON_MARGIN_PADDING));
-    ImGui::Image(gui.trophy_window_icon, ImVec2(TROPHY_WINDOW_ICON_SIZE, TROPHY_WINDOW_ICON_SIZE));
+    ImGui::Image(ImTextureRef(gui.trophy_window_icon), ImVec2(TROPHY_WINDOW_ICON_SIZE, TROPHY_WINDOW_ICON_SIZE));
     ImGui::NextColumn();
 
     auto &common = gui.lang.common.main;
@@ -106,10 +106,10 @@ static void draw_trophy_unlocked(GuiState &gui, EmuEnvState &emuenv, NpTrophyUnl
         break;
     }
 
-    ImGui::SetWindowFontScale(1.f * RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 1.f * RES_SCALE.x);
     ImGui::SetCursorPosY(TROPHY_WINDOW_MARGIN_PADDING);
     ImGui::TextColored(ImVec4(0.24f, 0.24f, 0.24f, 1.0f), "(%s) %s", trophy_kind_s.c_str(), callback_data.trophy_name.c_str());
-    ImGui::SetWindowFontScale(0.8f * RES_SCALE.x);
+    ImGui::PushFont(NULL, ImGui::GetStyle().FontSizeBase * 0.8f * RES_SCALE.x);
     ImGui::TextColored(ImVec4(0.24f, 0.24f, 0.24f, 1.0f), "%s", gui.lang.indicator["trophy_earned"].c_str());
     ImGui::End();
     ImGui::PopStyleColor();
