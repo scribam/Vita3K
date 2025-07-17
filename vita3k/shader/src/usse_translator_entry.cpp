@@ -907,7 +907,7 @@ spv::Id USSERecompiler::get_condition_value(const std::uint8_t pred, const bool 
     spv::Id pred_v = visitor.load(pred_opr, 0b0001);
     if (do_neg) {
         std::vector<spv::Id> ops{ pred_v };
-        pred_v = b.createOp(spv::OpLogicalNot, b.makeBoolType(), ops);
+        pred_v = b.createOp(spv::Op::OpLogicalNot, b.makeBoolType(), ops);
     }
 
     return pred_v;
@@ -927,7 +927,7 @@ void USSERecompiler::compile_code_node(const usse::USSECodeNode &code) {
         constexpr uint64_t sop3_opcode = 0b10001;
         if (code.size > 1 || (inst[code.offset] >> 59) != sop3_opcode) {
             spv::Id pred_v = get_condition_value(code.condition);
-            cond_builder = std::make_unique<spv::Builder::If>(pred_v, spv::SelectionControlMaskNone, b);
+            cond_builder = std::make_unique<spv::Builder::If>(pred_v, spv::SelectionControlMask::MaskNone, b);
         }
     }
 
@@ -956,7 +956,7 @@ void USSERecompiler::compile_break_node(const usse::USSEBreakNode &node) {
 
     if (node.get_condition() != 0) {
         spv::Id pred_v = get_condition_value(node.get_condition());
-        cond_builder = std::make_unique<spv::Builder::If>(pred_v, spv::SelectionControlMaskNone, b);
+        cond_builder = std::make_unique<spv::Builder::If>(pred_v, spv::SelectionControlMask::MaskNone, b);
     }
 
     b.createLoopExit();
@@ -970,7 +970,7 @@ void USSERecompiler::compile_continue_node(const usse::USSEContinueNode &node) {
 
     if (node.get_condition() != 0) {
         spv::Id pred_v = get_condition_value(node.get_condition());
-        cond_builder = std::make_unique<spv::Builder::If>(pred_v, spv::SelectionControlMaskNone, b);
+        cond_builder = std::make_unique<spv::Builder::If>(pred_v, spv::SelectionControlMask::MaskNone, b);
     }
 
     b.createLoopContinue();
@@ -980,7 +980,7 @@ void USSERecompiler::compile_continue_node(const usse::USSEContinueNode &node) {
 }
 
 void USSERecompiler::compile_conditional_node(const usse::USSEConditionalNode &cond) {
-    spv::Builder::If if_builder(get_condition_value(cond.negif_condition(), true), spv::SelectionControlMaskNone, b);
+    spv::Builder::If if_builder(get_condition_value(cond.negif_condition(), true), spv::SelectionControlMask::MaskNone, b);
     compile_block(*cond.if_block());
 
     if (cond.else_block()) {
@@ -998,7 +998,7 @@ void USSERecompiler::compile_loop_node(const usse::USSELoopNode &loop) {
     b.setBuildPoint(&loops.head);
 
     // In the head we only want to branch to body. We always do while do anyway
-    b.createLoopMerge(&loops.merge, &loops.continue_target, 0, {});
+    b.createLoopMerge(&loops.merge, &loops.continue_target, spv::LoopControlMask::MaskNone, {});
     b.createBranch(true, &loops.body);
 
     // Emit body content
@@ -1112,11 +1112,11 @@ void convert_gxp_usse_to_spirv(spv::Builder &b, const SceGxmProgram &program, co
     b.createFunctionCall(end_hook_func, {});
 
     if (features.should_use_shader_interlock() && program.is_fragment() && program.is_frag_color_used())
-        b.createNoResultOp(spv::OpEndInvocationInterlockEXT);
+        b.createNoResultOp(spv::Op::OpEndInvocationInterlockEXT);
 
     if (recomp.visitor.frag_depth_id != 0) {
         interfaces.push_back(recomp.visitor.frag_depth_id);
-        b.addExecutionMode(spv_func_main, spv::ExecutionModeDepthReplacing);
+        b.addExecutionMode(spv_func_main, spv::ExecutionMode::DepthReplacing);
     }
 }
 
