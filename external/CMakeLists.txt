@@ -375,7 +375,7 @@ if(NOT CURL_FOUND)
 	set(CURL_DISABLE_TESTS ON)
 	FetchContent_Declare(curl
 		GIT_REPOSITORY https://github.com/curl/curl.git
-		GIT_TAG        fd567d4f06857f4fc8e2f64ea727b1318f76ad33 # release 8.8.0
+		GIT_TAG        2eebc58c4b8d68c98c8344381a9f6df4cca838fd # release 8.18.0
 	)
 	FetchContent_MakeAvailable(curl)
 else()
