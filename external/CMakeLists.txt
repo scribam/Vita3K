@@ -289,7 +289,7 @@ if(NOT OPENSSL_FOUND OR FORCE_BUILD_OPENSSL_MAC)
 
 		if(NOT EXISTS "${CMAKE_BINARY_DIR}/external/openssl.zip")
 			message(STATUS "Downloading openssl...")
-			file(DOWNLOAD https://firedaemon.com/download-firedaemon-openssl-3-5-zip
+			file(DOWNLOAD https://firedaemon.com/download-firedaemon-openssl-3-6-zip
 				"${CMAKE_BINARY_DIR}/external/openssl.zip" SHOW_PROGRESS)
 		endif()
 
@@ -304,7 +304,7 @@ if(NOT OPENSSL_FOUND OR FORCE_BUILD_OPENSSL_MAC)
 		message(STATUS "OpenSSL not found.")
 		if(NOT EXISTS "${CMAKE_BINARY_DIR}/external/openssl.tar.gz")
 			message(STATUS "Downloading OpenSSL@3 from source...")
-			file(DOWNLOAD https://github.com/openssl/openssl/releases/download/openssl-3.3.2/openssl-3.3.2.tar.gz
+			file(DOWNLOAD https://github.com/openssl/openssl/releases/download/openssl-3.6.0/openssl-3.6.0.tar.gz
 				"${CMAKE_BINARY_DIR}/external/openssl.tar.gz" SHOW_PROGRESS)
 		endif()
 
